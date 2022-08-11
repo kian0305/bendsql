@@ -1,2 +1,2 @@
 # bendctl
-CLI for databend cloud
+CLI for Databend Cloud
