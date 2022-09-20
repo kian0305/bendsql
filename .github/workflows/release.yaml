@@ -7,12 +7,12 @@ on:
 
 env:
   # Common versions
-  GO_VERSION: '1.16'
+  GO_VERSION: '1.18'
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   build_and_upload:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         TARGETS: [ linux/amd64, darwin/amd64, windows/amd64, linux/arm64, darwin/arm64 ]
