@@ -6,7 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.5
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/avast/retry-go v3.0.0+incompatible
-	github.com/briandowns/spinner v1.19.0
+	github.com/briandowns/spinner v1.18.1
 	github.com/cli/cli/v2 v2.14.4
 	github.com/cli/safeexec v1.0.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
