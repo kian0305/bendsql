@@ -5,12 +5,12 @@ on:
     branches: [main]
     paths:
       - "bendctl/**"
-      - ".github/workflows/build.bendctl.yaml"
+      - ".github/workflows/ci.yaml"
   pull_request:
     branches: [main]
     paths:
       - "bendctl/**"
-      - ".github/workflows/build.bendctl.yaml"
+      - ".github/workflows/ci.yaml"
 
 env:
   # Common versions
