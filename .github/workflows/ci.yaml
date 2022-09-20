@@ -2,13 +2,15 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - release*
+    branches: [main]
+    paths:
+      - "bendctl/**"
+      - ".github/workflows/build.bendctl.yaml"
   pull_request:
-    branches:
-      - main
-      - release*
+    branches: [main]
+    paths:
+      - "bendctl/**"
+      - ".github/workflows/build.bendctl.yaml"
 
 env:
   # Common versions
