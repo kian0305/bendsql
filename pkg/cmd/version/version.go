@@ -33,7 +33,7 @@ func Format(version, buildDate string) string {
 }
 
 func changelogURL(version string) string {
-	path := "https://github.com/databendcloud/databend-cloud-platform"
+	path := "https://github.com/databendcloud/bendctl"
 	r := regexp.MustCompile(`^v?\d+\.\d+\.\d+(-[\w.]+)?$`)
 	if !r.MatchString(version) {
 		return fmt.Sprintf("%s/releases/latest", path)
