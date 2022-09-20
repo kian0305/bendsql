@@ -31,11 +31,11 @@ func NewCmdWarehouseSuspend(f *cmdutil.Factory) *cobra.Command {
 		Long:  "Suspend a warehouse",
 		Example: heredoc.Doc(`
 			# suspend a warehouse 
-			$ bendctl warehouse suspend [WAREHOUSENAME]
+			$ bendsql warehouse suspend [WAREHOUSENAME]
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 1 {
-				fmt.Printf("Wrong params, example: bendctl warehouse suspend [WAREHOUSENAME] \n")
+				fmt.Printf("Wrong params, example: bendsql warehouse suspend [WAREHOUSENAME] \n")
 				return
 			}
 			if len(args) == 0 {
@@ -56,7 +56,7 @@ func suspendWarehouse(f *cmdutil.Factory, warehouseName string) error {
 		return err
 	}
 	err = apiClient.SuspendWarehouse(warehouseName)
-	fmt.Printf("suspend warehouse %s success you can use `bendctl warehouse status WAREHOUSENAME to check`", warehouseName)
+	fmt.Printf("suspend warehouse %s success you can use `bendsql warehouse status WAREHOUSENAME to check`", warehouseName)
 
 	return err
 }

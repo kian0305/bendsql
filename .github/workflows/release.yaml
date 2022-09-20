@@ -38,22 +38,22 @@ jobs:
         run: |
           ${{ env.GO_BUILD_ENV }} GOOS=${{ steps.get_matrix.outputs.OS }} GOARCH=${{ steps.get_matrix.outputs.ARCH }} \
             go build \
-            -o _bin/bendctl/${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}/bendctl -v \
-            ./cmd/bendctl/main.go
+            -o _bin/bendsql/${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}/bendsql -v \
+            ./cmd/bendsql/main.go
       - name: Compress
         run: |
-          cd _bin/bendctl && \
+          cd _bin/bendsql && \
           ${{ env.DIST_DIRS }} cp ../../LICENSE {} \; && \
           ${{ env.DIST_DIRS }} cp ../../README.md {} \; && \
-          ${{ env.DIST_DIRS }} tar -zcf bendctl-{}.tar.gz {} \; && \
+          ${{ env.DIST_DIRS }} tar -zcf bendsql-{}.tar.gz {} \; && \
           cd .. && \
-          sha256sum bendctl/bendctl-* >> sha256-${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}.txt \
-      - name: Upload bendctl tar.gz
+          sha256sum bendsql/bendsql-* >> sha256-${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}.txt \
+      - name: Upload bendsql tar.gz
         uses: actions/upload-release-asset@v1.0.2
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./_bin/bendctl/bendctl-${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}.tar.gz
-          asset_name: bendctl-${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}.tar.gz
+          asset_path: ./_bin/bendsql/bendsql-${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}.tar.gz
+          asset_name: bendsql-${{ steps.get_matrix.outputs.OS }}-${{ steps.get_matrix.outputs.ARCH }}.tar.gz
           asset_content_type: binary/octet-stream
       - name: Post sha256
         uses: actions/upload-artifact@v2

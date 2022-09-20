@@ -32,7 +32,7 @@ func NewCmdCompletion(io *iostreams.IOStreams) *cobra.Command {
 		Long: heredoc.Docf(`
 			Generate shell completion scripts for Databend Cloud CLI commands.
 
-			When installing bendctl through a package manager, it's possible that
+			When installing bendsql through a package manager, it's possible that
 			no additional shell configuration is necessary to gain completion support. For
 			Homebrew, see <https://docs.brew.sh/Shell-Completion>
 
@@ -46,13 +46,13 @@ func NewCmdCompletion(io *iostreams.IOStreams) *cobra.Command {
 
 			After, add this to your %[1]s~/.bash_profile%[1]s:
 
-				eval "$(bendctl completion -s bash)"
+				eval "$(bendsql completion -s bash)"
 			
 			### zsh
 
-			Generate a %[1]s_bendctl%[1]s completion script and put it somewhere in your %[1]s$fpath%[1]s:
+			Generate a %[1]s_bendsql%[1]s completion script and put it somewhere in your %[1]s$fpath%[1]s:
 
-				bendctl completion -s zsh > /usr/local/share/zsh/site-functions/_bendctl
+				bendsql completion -s zsh > /usr/local/share/zsh/site-functions/_bendsql
 
 			Ensure that the following is present in your %[1]s~/.zshrc%[1]s:
 
@@ -63,9 +63,9 @@ func NewCmdCompletion(io *iostreams.IOStreams) *cobra.Command {
 
 			### fish
 
-			Generate a %[1]sbendctl.fish%[1]s completion script:
+			Generate a %[1]sbendsql.fish%[1]s completion script:
 
-				bendctl completion -s fish > ~/.config/fish/completions/bendctl.fish
+				bendsql completion -s fish > ~/.config/fish/completions/bendsql.fish
 
 			### PowerShell
 
@@ -76,7 +76,7 @@ func NewCmdCompletion(io *iostreams.IOStreams) *cobra.Command {
 			
 			Add the line and save the file:
 
-				Invoke-Expression -Command $(bendctl completion -s powershell | Out-String)
+				Invoke-Expression -Command $(bendsql completion -s powershell | Out-String)
 		`, "`"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if shellType == "" {

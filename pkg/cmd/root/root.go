@@ -30,17 +30,17 @@ import (
 
 func NewCmdRoot(f *cmdutil.Factory, version, buildDate string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bendctl <command> <subcommand> [flags]",
+		Use:   "bendsql <command> <subcommand> [flags]",
 		Short: "Dababend Cloud CLI",
 		Long:  `Work seamlessly with Databend Cloud from the command line.`,
 
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		Example: heredoc.Doc(`
-			$ bendctl auth login
-			$ bendctl warehouse status
-			$ bendctl warehouse create
-			$ bendctl ls stage
+			$ bendsql auth login
+			$ bendsql warehouse status
+			$ bendsql warehouse create
+			$ bendsql ls stage
 		`),
 		Annotations: map[string]string{
 			"versionInfo": versionCmd.Format(version, buildDate),
@@ -49,7 +49,7 @@ func NewCmdRoot(f *cmdutil.Factory, version, buildDate string) *cobra.Command {
 
 	cmd.SetErr(f.IOStreams.ErrOut) // just let it default to os.Stderr instead
 
-	cmd.Flags().Bool("version", false, "Show bendctl version")
+	cmd.Flags().Bool("version", false, "Show bendsql version")
 	cmd.PersistentFlags().Bool("help", false, "Show help for command")
 	cmd.SetHelpFunc(func(c *cobra.Command, args []string) {
 		rootHelpFunc(f, c, args)

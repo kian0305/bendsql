@@ -31,15 +31,15 @@ func NewCmdWarehouseCreate(f *cmdutil.Factory) *cobra.Command {
 		Long:  "Create a warehouse",
 		Example: heredoc.Doc(`
 			# create a warehouse, the size has Small, Medium, Large, default is Small 
-			$ bendctl warehouse create WAREHOUSENAME --size Small
+			$ bendsql warehouse create WAREHOUSENAME --size Small
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 1 {
-				fmt.Printf("Wrong params, example: bendctl warehouse create WAREHOUSENAME \n")
+				fmt.Printf("Wrong params, example: bendsql warehouse create WAREHOUSENAME \n")
 				return
 			}
 			if len(args) == 0 {
-				fmt.Printf("No warehouseName, example: bendctl warehouse create WAREHOUSENAME \n")
+				fmt.Printf("No warehouseName, example: bendsql warehouse create WAREHOUSENAME \n")
 				return
 			}
 			err := createWarehouse(f, args[0], size)

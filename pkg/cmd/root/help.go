@@ -154,7 +154,7 @@ func rootHelpFunc(f *cmdutil.Factory, command *cobra.Command, args []string) {
 	}
 	if longText != "" && command.LocalFlags().Lookup("jq") != nil {
 		longText = strings.TrimRight(longText, "\n") +
-			"\n\nFor more information about output formatting flags, see `bendctl help formatting`."
+			"\n\nFor more information about output formatting flags, see `bendsql help formatting`."
 	}
 
 	helpEntries := []helpEntry{}
@@ -210,7 +210,7 @@ func rootHelpFunc(f *cmdutil.Factory, command *cobra.Command, args []string) {
 		helpEntries = append(helpEntries, helpEntry{"ENVIRONMENT VARIABLES", command.Annotations["help:environment"]})
 	}
 	helpEntries = append(helpEntries, helpEntry{"LEARN MORE", `
-Use 'bendctl <command> <subcommand> --help' for more information about a command.
+Use 'bendsql <command> <subcommand> --help' for more information about a command.
 `})
 	if _, ok := command.Annotations["help:feedback"]; ok {
 		helpEntries = append(helpEntries, helpEntry{"FEEDBACK", command.Annotations["help:feedback"]})

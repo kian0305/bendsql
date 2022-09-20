@@ -26,14 +26,14 @@ import (
 
 var HelpTopics = map[string]map[string]string{
 	"environment": {
-		"short": "Environment variables that can be used with bendctl",
+		"short": "Environment variables that can be used with bendsql",
 		"long": heredoc.Doc(`
-			BENDCTL_CONFIG_DIR: the directory where bendctl will store configuration files. Default:
-			"$HOME/.config/bendctl".
+			BENDSQL_CONFIG_DIR: the directory where bendsql will store configuration files. Default:
+			"$HOME/.config/bendsql".
 		`),
 	},
 	"reference": {
-		"short": "A comprehensive reference of all bendctl commands",
+		"short": "A comprehensive reference of all bendsql commands",
 	},
 }
 
@@ -46,7 +46,7 @@ func NewHelpTopic(ios *iostreams.IOStreams, topic string) *cobra.Command {
 		Hidden:  true,
 		Annotations: map[string]string{
 			"markdown:generate": "true",
-			"markdown:basename": "bendctl_help_" + topic,
+			"markdown:basename": "bendsql_help_" + topic,
 		},
 	}
 
@@ -69,6 +69,6 @@ func helpTopicHelpFunc(w io.Writer, command *cobra.Command, args []string) {
 }
 
 func helpTopicUsageFunc(w io.Writer, command *cobra.Command) error {
-	fmt.Fprintf(w, "Usage: bendctl help %s", command.Use)
+	fmt.Fprintf(w, "Usage: bendsql help %s", command.Use)
 	return nil
 }

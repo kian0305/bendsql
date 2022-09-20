@@ -32,11 +32,11 @@ func NewCmdWarehouseStatus(f *cmdutil.Factory) *cobra.Command {
 		Long:  "show warehouse status",
 		Example: heredoc.Doc(`
 			# show warehouse status
-			$ bendctl warehouse status WAREHOUSENAME
+			$ bendsql warehouse status WAREHOUSENAME
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 1 {
-				fmt.Printf("Wrong params, example: bendctl warehouse status WAREHOUSENAME \n")
+				fmt.Printf("Wrong params, example: bendsql warehouse status WAREHOUSENAME \n")
 				return
 			}
 			if len(args) == 0 {

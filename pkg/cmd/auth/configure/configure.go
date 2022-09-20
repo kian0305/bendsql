@@ -51,10 +51,10 @@ func NewCmdConfigure(f *cmdutil.Factory) *cobra.Command {
 		Example: heredoc.Doc(`
 			# Set your default org and using warehouse with flag
 			# NOTE: Using flag is faster than interactive shell
-			$ bendctl auth configure --org ORG --warehouse WAREHOUSENAME
+			$ bendsql auth configure --org ORG --warehouse WAREHOUSENAME
 			
 			# Set with interactive shell
-			$ bendctl auth configure
+			$ bendsql auth configure
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.NewConfig()

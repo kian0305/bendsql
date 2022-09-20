@@ -47,7 +47,7 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 		Long:  "Exec query SQL using warehouse",
 		Example: heredoc.Doc(`
 			# exec SQL using warehouse 
-			$ bendctl query --sql "YOURSQL" --warehouse [WAREHOUSENAME]
+			$ bendsql query --sql "YOURSQL" --warehouse [WAREHOUSENAME]
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			cfg, err := config.NewConfig()
@@ -59,7 +59,7 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 				// TODO: check the warehouse whether in warehouse list
 				warehouse, err = cfg.Get(config.Warehouse)
 				if warehouse == "" || err != nil {
-					fmt.Printf("get default warehouse failed, please your default warehouse in $HOME/.config/bendctl/bendctl.ini")
+					fmt.Printf("get default warehouse failed, please your default warehouse in $HOME/.config/bendsql/bendsql.ini")
 					return
 				}
 			}

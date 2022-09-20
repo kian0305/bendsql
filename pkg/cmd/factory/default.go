@@ -23,7 +23,7 @@ import (
 
 func New(appVersion string) *cmdutil.Factory {
 	f := &cmdutil.Factory{
-		ExecutableName: "bendctl",
+		ExecutableName: "bendsql",
 		ApiClient:      httpClientFunc(),
 		Config:         configFunc(),
 	}
