@@ -1,16 +1,21 @@
 package cmdutil
 
 import (
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/datafuselabs/bendcloud-cli/api"
+
+	"github.com/datafuselabs/bendcloud-cli/internal/config"
+
+	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
 )
 
 type Factory struct {
-	IOStreams *iostreams.IOStreams
-	// TODO: add interface for bendctl config
-	//Config     func() (config.Config, error)
+	IOStreams      *iostreams.IOStreams
+	Config         func() (config.Configer, error)
+	ApiClient      func() (*api.APIClient, error)
 	ExecutableName string
 }
 

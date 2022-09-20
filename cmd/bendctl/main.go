@@ -7,6 +7,15 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
+	"net"
+	"os"
+	"strings"
+
+	"github.com/datafuselabs/bendcloud-cli/utils"
+
+	"github.com/spf13/cobra"
+
 	surveyCore "github.com/AlecAivazis/survey/v2/core"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/datafuselabs/bendcloud-cli/internal/build"
@@ -15,7 +24,6 @@ import (
 	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
 	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
 	"github.com/mgutz/ansi"
-	"os"
 )
 
 type exitCode int
@@ -38,6 +46,7 @@ func mainRun() exitCode {
 
 	cmdFactory := factory.New(buildVersion)
 	stderr := cmdFactory.IOStreams.ErrOut
+	hasDebug := utils.IsDebugEnabled()
 
 	if !cmdFactory.IOStreams.ColorEnabled() {
 		surveyCore.DisableColor = true
@@ -59,7 +68,7 @@ func mainRun() exitCode {
 	authError := errors.New("authError")
 
 	rootCmd := root.NewCmdRoot(cmdFactory, buildVersion, buildDate)
-	if _, err := rootCmd.ExecuteC(); err != nil {
+	if cmd, err := rootCmd.ExecuteC(); err != nil {
 		var pagerPipeError *iostreams.ErrClosedPagerPipe
 		var noResultsError cmdutil.NoResultsError
 		if err == cmdutil.SilentError {
@@ -82,8 +91,30 @@ func mainRun() exitCode {
 			// no results is not a command failure
 			return exitOK
 		}
+		printError(stderr, err, cmd, hasDebug)
 
 		return exitError
 	}
 	return exitOK
+}
+
+func printError(out io.Writer, err error, cmd *cobra.Command, debug bool) {
+	var dnsError *net.DNSError
+	if errors.As(err, &dnsError) {
+		fmt.Fprintf(out, "error connecting to %s\n", dnsError.Name)
+		if debug {
+			fmt.Fprintln(out, dnsError)
+		}
+		fmt.Fprintln(out, "please check your network")
+		return
+	}
+	fmt.Fprintln(out, err)
+
+	var flagError *cmdutil.FlagError
+	if errors.As(err, &flagError) || strings.HasPrefix(err.Error(), "unknown command ") {
+		if !strings.HasSuffix(err.Error(), "\n") {
+			fmt.Fprintln(out)
+		}
+		fmt.Fprintln(out, cmd.UsageString())
+	}
 }
