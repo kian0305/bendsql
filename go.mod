@@ -7,6 +7,7 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/avast/retry-go v2.7.0+incompatible
 	github.com/briandowns/spinner v1.18.1
+	github.com/cli/cli/v2 v2.15.0
 	github.com/cli/safeexec v1.0.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/mattn/go-colorable v0.1.13
@@ -25,7 +26,6 @@ require (
 )
 
 require (
-	github.com/cli/cli/v2 v2.15.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
