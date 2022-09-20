@@ -8,6 +8,7 @@ github.com/avast/retry-go v3.0.0+incompatible h1:4SOWQ7Qs+oroOTQOYnAHqelpCO0biHS
 github.com/avast/retry-go v3.0.0+incompatible/go.mod h1:XtSnn+n/sHqQIpZ10K1qAevBhOOCWBLXXy3hyiqqBrY=
 github.com/briandowns/spinner v1.18.1 h1:yhQmQtM1zsqFsouh09Bk/jCjd50pC3EOGsh28gLVvwY=
 github.com/briandowns/spinner v1.18.1/go.mod h1:mQak9GHqbspjC/5iUx3qMlIho8xBS/ppAL/hX5SmPJU=
+github.com/charmbracelet/glamour v0.4.0 h1:scR+smyB7WdmrlIaff6IVlm48P48JaNM7JypM/VGl4k=
 github.com/cli/cli/v2 v2.14.4 h1:cVjvoE2xgl9zHRe8rA2sL/csekI4O7dV0KIaLmxN3Gk=
 github.com/cli/cli/v2 v2.14.4/go.mod h1:vshFQb16zdlgia+rFUq8YPM6qEe7iTnNQyLUERTWH30=
 github.com/cli/safeexec v1.0.0 h1:0VngyaIyqACHdcMNWfo6+KdUYnqEr2Sg+bSP1pdF+dI=
