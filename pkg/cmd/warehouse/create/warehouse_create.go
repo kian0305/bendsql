@@ -1,0 +1,55 @@
+package warehouse
+
+import (
+	"fmt"
+
+	"github.com/MakeNowJust/heredoc"
+	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	"github.com/spf13/cobra"
+)
+
+func NewCmdWarehouseCreate(f *cmdutil.Factory) *cobra.Command {
+
+	var size string
+	cmd := &cobra.Command{
+		Use:   "create warehouseName",
+		Short: "Create a warehouse",
+		Long:  "Create a warehouse",
+		Example: heredoc.Doc(`
+			# create a warehouse, the size has Small, Medium, Large, default is Small 
+			$ bendctl warehouse create WAREHOUSENAME --size Small
+		`),
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) > 1 {
+				fmt.Printf("Wrong params, example: bendctl warehouse create WAREHOUSENAME \n")
+				return
+			}
+			if len(args) == 0 {
+				fmt.Printf("No warehouseName, example: bendctl warehouse create WAREHOUSENAME \n")
+				return
+			}
+			err := createWarehouse(f, args[0], size)
+			if err != nil {
+				fmt.Printf("create warehouse %s failed, err: %v", args[0], err)
+				return
+			}
+			fmt.Printf("warehouse %s created, size is %s", args[0], size)
+		},
+	}
+	cmd.Flags().StringVar(&size, "size", "Small", "Warehouse size")
+
+	return cmd
+}
+
+func createWarehouse(f *cmdutil.Factory, warehouseName, size string) error {
+	fmt.Printf("warehouse %s is creating, please wait...\n", warehouseName)
+	apiClient, err := f.ApiClient()
+	if err != nil {
+		return err
+	}
+	err = apiClient.CreateWarehouse(warehouseName, size)
+	if err != nil {
+		return err
+	}
+	return nil
+}
