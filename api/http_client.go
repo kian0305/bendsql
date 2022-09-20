@@ -94,7 +94,7 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 	}
 
 	if httpResp.StatusCode == http.StatusUnauthorized {
-		return apierrors.New("please use `bendctl auth login` to login your account.", httpResp.StatusCode, httpRespBody)
+		return apierrors.New("please use `bendsql auth login` to login your account.", httpResp.StatusCode, httpRespBody)
 	} else if httpResp.StatusCode >= 500 {
 		return apierrors.New("please retry again later.", httpResp.StatusCode, httpRespBody)
 	} else if httpResp.StatusCode >= 400 {
@@ -117,7 +117,7 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 }
 
 func (c *APIClient) makeURL(path string, args ...interface{}) string {
-	apiEndpoint := os.Getenv("BENDCTL_API_ENDPOINT")
+	apiEndpoint := os.Getenv("BENDSQL_API_ENDPOINT")
 	if apiEndpoint == "" {
 		apiEndpoint = defaultApiEndpoint
 	}

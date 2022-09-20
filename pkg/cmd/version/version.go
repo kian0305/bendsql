@@ -43,11 +43,11 @@ func Format(version, buildDate string) string {
 		dateStr = fmt.Sprintf(" (%s)", buildDate)
 	}
 
-	return fmt.Sprintf("bendctl version %s%s\n%s\n", version, dateStr, changelogURL(version))
+	return fmt.Sprintf("bendsql version %s%s\n%s\n", version, dateStr, changelogURL(version))
 }
 
 func changelogURL(version string) string {
-	path := "https://github.com/databendcloud/bendctl"
+	path := "https://github.com/databendcloud/bendsql"
 	r := regexp.MustCompile(`^v?\d+\.\d+\.\d+(-[\w.]+)?$`)
 	if !r.MatchString(version) {
 		return fmt.Sprintf("%s/releases/latest", path)

@@ -50,11 +50,11 @@ func NewCmdStageList(f *cmdutil.Factory) *cobra.Command {
 		Long:  "List stage or files in stage",
 		Example: heredoc.Doc(`
 			# list all stages in your account
-			$ bendctl stage ls 
+			$ bendsql stage ls 
 			# list the files in the stage
-			$ bendctl stage ls @StageName
+			$ bendsql stage ls @StageName
 			# list the file info in @stage
-			$ bendctl stage ls @StageName/FileName
+			$ bendsql stage ls @StageName/FileName
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			opts.StageName = stage

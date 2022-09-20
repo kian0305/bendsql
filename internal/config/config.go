@@ -38,8 +38,8 @@ const (
 )
 
 const (
-	bendctlConfigDir  = "BENDCTL_CONFIG_DIR"
-	bendctlCinfigFile = "bendctl.ini"
+	bendsqlConfigDir  = "BENDSQL_CONFIG_DIR"
+	bendsqlCinfigFile = "bendsql.ini"
 )
 
 type Config struct {
@@ -65,7 +65,7 @@ func NewConfig() (Configer, error) {
 }
 
 func (c *Config) Write() error {
-	if Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		err := os.RemoveAll(ConfigDir())
 		if err != nil {
 			return err
@@ -77,8 +77,8 @@ func (c *Config) Write() error {
 			return err
 		}
 	}
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
-		_, err := os.Create(filepath.Join(ConfigDir(), bendctlCinfigFile))
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
+		_, err := os.Create(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (c *Config) Write() error {
 	defaultSection.NewKey(Org, c.Org)
 	defaultSection.NewKey(UserEmail, c.UserEmail)
 
-	return cg.SaveTo(filepath.Join(ConfigDir(), bendctlCinfigFile))
+	return cg.SaveTo(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 }
 
 func (c *Config) AuthToken() (string, string) {
@@ -106,11 +106,11 @@ func (c *Config) AuthToken() (string, string) {
 
 // Get a string value from a ConfigFile.
 func (c *Config) Get(key string) (string, error) {
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return "", nil
 	}
-	log := logrus.WithField("bendctl", "get")
-	cfg, err := ini.Load(filepath.Join(ConfigDir(), bendctlCinfigFile))
+	log := logrus.WithField("bendsql", "get")
+	cfg, err := ini.Load(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 	if err != nil {
 		log.Errorf("Fail to read file: %v", err)
 		return "", err
@@ -119,14 +119,14 @@ func (c *Config) Get(key string) (string, error) {
 }
 
 func (c *Config) Set(key, value string) error {
-	log := logrus.WithField("bendctl", "set")
-	cfg, err := ini.Load(filepath.Join(ConfigDir(), bendctlCinfigFile))
+	log := logrus.WithField("bendsql", "set")
+	cfg, err := ini.Load(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 	if err != nil {
 		log.Errorf("Fail to read file: %v", err)
 		return err
 	}
 	cfg.Section("").Key(key).SetValue(value)
-	err = cfg.SaveTo(filepath.Join(ConfigDir(), bendctlCinfigFile))
+	err = cfg.SaveTo(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 	if err != nil {
 		log.Errorf("Fail to save file: %v", err)
 		return err
@@ -135,7 +135,7 @@ func (c *Config) Set(key, value string) error {
 }
 
 func RenewTokens(accessToken, refreshToken string) error {
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return os.ErrNotExist
 	}
 	cfg, err := NewConfig()
@@ -151,7 +151,7 @@ func RenewTokens(accessToken, refreshToken string) error {
 }
 
 func GetAuthToken() (string, string) {
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return "", ""
 	}
 	cfg, err := NewConfig()
@@ -163,7 +163,7 @@ func GetAuthToken() (string, string) {
 }
 
 func GetWarehouse() string {
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return ""
 	}
 	cfg, err := NewConfig()
@@ -180,7 +180,7 @@ func GetWarehouse() string {
 }
 
 func GetUserEmail() string {
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return ""
 	}
 	cfg, err := NewConfig()
@@ -197,7 +197,7 @@ func GetUserEmail() string {
 }
 
 func GetOrg() string {
-	if !Exists(filepath.Join(ConfigDir(), bendctlCinfigFile)) {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return ""
 	}
 	cfg, err := NewConfig()
@@ -213,27 +213,25 @@ func GetOrg() string {
 	return warehouse
 }
 
-// Config path precedence: GH_CONFIG_DIR.
-
 func ConfigDir() string {
 	var path string
-	if a := os.Getenv(bendctlConfigDir); a != "" {
+	if a := os.Getenv(bendsqlConfigDir); a != "" {
 		path = a
 	} else {
 		d, _ := os.UserHomeDir()
-		path = filepath.Join(d, ".config", "bendctl")
+		path = filepath.Join(d, ".config", "bendsql")
 	}
 	return path
 }
 
-// Read bendctl configuration files from the local file system and
+// Read bendsql configuration files from the local file system and
 // return a Config.
 var Read = func() (*Config, error) {
 	var err error
 	var iniCfg *ini.File
 	cfg := &Config{}
 	once.Do(func() {
-		iniCfg, err = ini.Load(filepath.Join(ConfigDir(), bendctlCinfigFile))
+		iniCfg, err = ini.Load(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 		err = iniCfg.MapTo(cfg)
 	})
 	return cfg, err

@@ -29,7 +29,7 @@ func NewCmdWarehouseList(f *cmdutil.Factory) *cobra.Command {
 		Long:  "show warehouse list",
 		Example: heredoc.Doc(`
 			# show warehouse list
-			$ bendctl warehouse ls
+			$ bendsql warehouse ls
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			warehouseList, err := showWarehouseList(f)

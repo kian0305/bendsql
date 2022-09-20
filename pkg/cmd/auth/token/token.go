@@ -54,7 +54,7 @@ func NewCmdAuthToken(f *cmdutil.Factory, runF func(*TokenOptions) error) *cobra.
 		`, "`"),
 		Example: heredoc.Doc(`
 			# authenticate by tokens
-			$ bendctl auth token --accessToken ACCESSTOKEN --refreshToken REFRESHTOKEN [--org ORG]
+			$ bendsql auth token --accessToken ACCESSTOKEN --refreshToken REFRESHTOKEN [--org ORG]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if accessToken == "" || refreshToken == "" {
@@ -111,7 +111,7 @@ func runAuthByToken(opts *TokenOptions) error {
 	cfg.Warehouse = warehouses[0].Name
 	err = cfg.Write()
 	if err != nil {
-		return fmt.Errorf("save bendctl config failed: %w", err)
+		return fmt.Errorf("save bendsql config failed: %w", err)
 	}
 
 	logrus.Infof("%s logged in %s of Databend Cloud successfully.", currentAccountInfo.Email, cfg.Org)

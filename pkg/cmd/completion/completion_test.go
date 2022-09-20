@@ -33,17 +33,17 @@ func TestNewCmdCompletion(t *testing.T) {
 		{
 			name:    "no arguments",
 			args:    "completion",
-			wantOut: "complete -o default -F __start_bendctl bendctl",
+			wantOut: "complete -o default -F __start_bendsql bendsql",
 		},
 		{
 			name:    "zsh completion",
 			args:    "completion -s zsh",
-			wantOut: "#compdef bendctl",
+			wantOut: "#compdef bendsql",
 		},
 		{
 			name:    "fish completion",
 			args:    "completion -s fish",
-			wantOut: "complete -c bendctl ",
+			wantOut: "complete -c bendsql ",
 		},
 		{
 			name:    "PowerShell completion",
@@ -60,7 +60,7 @@ func TestNewCmdCompletion(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			ios, _, stdout, stderr := iostreams.Test()
 			completeCmd := NewCmdCompletion(ios)
-			rootCmd := &cobra.Command{Use: "bendctl"}
+			rootCmd := &cobra.Command{Use: "bendsql"}
 			rootCmd.AddCommand(completeCmd)
 
 			argv, err := shlex.Split(tt.args)

@@ -25,7 +25,7 @@ import (
 func NewCmdAuth(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth <command>",
-		Short: "Authenticate bendctl",
+		Short: "Authenticate bendsql",
 		Annotations: map[string]string{
 			"IsCore": "true",
 		},

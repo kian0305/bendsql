@@ -3,7 +3,7 @@
 default: build
 
 build: fmt vet
-	go build -o bin/bendctl cmd/bendctl/main.go
+	go build -o bin/bendsql cmd/bendsql/main.go
 
 test:
 	GO111MODULE=on go test -p 1 -v -race ./...

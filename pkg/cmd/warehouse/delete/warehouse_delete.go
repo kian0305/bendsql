@@ -30,15 +30,15 @@ func NewCmdWarehouseDelete(f *cmdutil.Factory) *cobra.Command {
 		Long:  "Delete a warehouse",
 		Example: heredoc.Doc(`
 			# delete a warehouse
-			$ bendctl warehouse delete WAREHOUSENAME
+			$ bendsql warehouse delete WAREHOUSENAME
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 1 {
-				fmt.Printf("Wrong params, example: bendctl warehouse delete WAREHOUSENAME \n")
+				fmt.Printf("Wrong params, example: bendsql warehouse delete WAREHOUSENAME \n")
 				return
 			}
 			if len(args) == 0 {
-				fmt.Printf("No warehouseName, example: bendctl warehouse delete WAREHOUSENAME \n")
+				fmt.Printf("No warehouseName, example: bendsql warehouse delete WAREHOUSENAME \n")
 				return
 			}
 			err := deleteWarehouse(f, args[0])

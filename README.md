@@ -1,11 +1,11 @@
-# bendctl
+# bendsql
 CLI for Databend Cloud
 
 ## Installation
 
 ### Unix
 ```shell
-make build && cp ./bin/bendctl /usr/local/bin
+make build && cp ./bin/bendsql /usr/local/bin
 ```
 
-Then `bendctl -h` and enjoy.
+Then `bendsql -h` and enjoy.

@@ -68,10 +68,10 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 		`, "`"),
 		Example: heredoc.Doc(`
 			# start interactive setup
-			$ bendctl auth login
+			$ bendsql auth login
 
 			# authenticate by reading the token from a file
-			$ bendctl auth login --email EMAIL --password PASSWORD [--org ORG]
+			$ bendsql auth login --email EMAIL --password PASSWORD [--org ORG]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.IO.CanPrompt() && (email == "" || password == "") {

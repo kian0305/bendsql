@@ -50,7 +50,7 @@ func NewCmdStageUpload(f *cmdutil.Factory) *cobra.Command {
 		Long:  "Upload file to stage using warehouse",
 		Example: heredoc.Doc(`
 			# upload file to stage using warehouse with flag
-			$ bendctl stage upload FILE STAGE --warehouse [WAREHOUSENAME]
+			$ bendsql stage upload FILE STAGE --warehouse [WAREHOUSENAME]
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) <= 0 || len(args) > 2 {

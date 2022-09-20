@@ -4,12 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - "bendctl/**"
+      - "bendsql/**"
       - ".github/workflows/ci.yaml"
   pull_request:
     branches: [main]
     paths:
-      - "bendctl/**"
+      - "bendsql/**"
       - ".github/workflows/ci.yaml"
 
 env:

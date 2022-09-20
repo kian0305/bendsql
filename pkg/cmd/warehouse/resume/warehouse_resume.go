@@ -35,14 +35,14 @@ func NewCmdWarehouseResume(f *cmdutil.Factory) *cobra.Command {
 		Long:  "Resume a warehouse",
 		Example: heredoc.Doc(`
 			# resume a warehouse and return until the warehouse running
-			$ bendctl warehouse resume WAREHOUSENAME --wait
+			$ bendsql warehouse resume WAREHOUSENAME --wait
 			
 			# resume a warehouse and return 
-			$ bendctl warehouse resume WAREHOUSENAME
+			$ bendsql warehouse resume WAREHOUSENAME
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) > 1 {
-				fmt.Printf("Wrong params, example: bendctl warehouse resume WAREHOUSENAME \n")
+				fmt.Printf("Wrong params, example: bendsql warehouse resume WAREHOUSENAME \n")
 				return
 			}
 			if len(args) == 0 {
@@ -85,7 +85,7 @@ func resumeWarehouse(f *cmdutil.Factory, warehouseName string, wait bool) error 
 		)
 	}
 	err = apiClient.ResumeWarehouse(warehouseName)
-	fmt.Printf("resume warehouse %s done please use `bendctl warehouse status WAREHOUSENAME to check`", warehouseName)
+	fmt.Printf("resume warehouse %s done please use `bendsql warehouse status WAREHOUSENAME to check`", warehouseName)
 
 	return err
 }
