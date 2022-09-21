@@ -15,14 +15,22 @@
 package build
 
 import (
+	"fmt"
+	"github.com/cli/safeexec"
+	"io"
+	"os"
+	"os/exec"
 	"runtime/debug"
+	"strconv"
+	"strings"
+	"time"
 )
 
 // Version is dynamically set by the toolchain or overridden by the Makefile.
-var Version = "DEV"
+var Version = version()
 
 // Date is dynamically set at build time in the Makefile.
-var Date = "" // YYYY-MM-DD
+var Date = date() // YYYY-MM-DD
 
 func init() {
 	if Version == "DEV" {
@@ -30,4 +38,38 @@ func init() {
 			Version = info.Main.Version
 		}
 	}
+}
+
+func version() string {
+	if versionEnv := os.Getenv("BENDSQL_VERSION"); versionEnv != "" {
+		return versionEnv
+	}
+	if desc, err := cmdOutput("git", "describe", "--tags"); err == nil {
+		fmt.Println(desc)
+		return desc
+	}
+	rev, _ := cmdOutput("git", "rev-parse", "--short", "HEAD")
+	fmt.Println(rev)
+	return rev
+}
+
+func date() string {
+	t := time.Now()
+	if sourceDate := os.Getenv("SOURCE_DATE_EPOCH"); sourceDate != "" {
+		if sec, err := strconv.ParseInt(sourceDate, 10, 64); err == nil {
+			t = time.Unix(sec, 0)
+		}
+	}
+	return t.Format("2006-01-02")
+}
+
+func cmdOutput(args ...string) (string, error) {
+	exe, err := safeexec.LookPath(args[0])
+	if err != nil {
+		return "", err
+	}
+	cmd := exec.Command(exe, args[1:]...)
+	cmd.Stderr = io.Discard
+	out, err := cmd.Output()
+	return strings.TrimSuffix(string(out), "\n"), err
 }
