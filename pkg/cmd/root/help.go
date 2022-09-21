@@ -17,8 +17,8 @@ package root
 import (
 	"bytes"
 	"fmt"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
-	"github.com/datafuselabs/bendcloud-cli/pkg/text"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/pkg/text"
 	"io"
 	"sort"
 	"strings"

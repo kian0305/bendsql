@@ -19,7 +19,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 

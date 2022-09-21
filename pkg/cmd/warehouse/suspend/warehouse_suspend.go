@@ -18,8 +18,8 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/datafuselabs/bendcloud-cli/internal/config"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/internal/config"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 

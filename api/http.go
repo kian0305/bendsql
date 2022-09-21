@@ -26,8 +26,8 @@ import (
 	"time"
 
 	"github.com/avast/retry-go"
-	"github.com/datafuselabs/bendcloud-cli/api/apierrors"
-	"github.com/datafuselabs/bendcloud-cli/internal/config"
+	"github.com/databendcloud/bendsql/api/apierrors"
+	"github.com/databendcloud/bendsql/internal/config"
 )
 
 func (c *APIClient) Login() error {

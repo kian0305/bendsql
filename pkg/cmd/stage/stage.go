@@ -15,9 +15,9 @@
 package stage
 
 import (
-	stageListCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/stage/stage_ls"
-	stageUploadCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/stage/stage_upload"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	stageListCmd "github.com/databendcloud/bendsql/pkg/cmd/stage/stage_ls"
+	stageUploadCmd "github.com/databendcloud/bendsql/pkg/cmd/stage/stage_upload"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 

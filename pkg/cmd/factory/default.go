@@ -15,10 +15,10 @@
 package factory
 
 import (
-	"github.com/datafuselabs/bendcloud-cli/api"
-	"github.com/datafuselabs/bendcloud-cli/internal/config"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
+	"github.com/databendcloud/bendsql/api"
+	"github.com/databendcloud/bendsql/internal/config"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 )
 
 func New(appVersion string) *cmdutil.Factory {

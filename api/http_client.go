@@ -22,8 +22,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/datafuselabs/bendcloud-cli/api/apierrors"
-	"github.com/datafuselabs/bendcloud-cli/internal/config"
+	"github.com/databendcloud/bendsql/api/apierrors"
+	"github.com/databendcloud/bendsql/internal/config"
 )
 
 type APIClient struct {

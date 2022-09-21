@@ -16,8 +16,8 @@ package root
 
 import (
 	"fmt"
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
-	"github.com/datafuselabs/bendcloud-cli/pkg/text"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
+	"github.com/databendcloud/bendsql/pkg/text"
 	"io"
 
 	"github.com/MakeNowJust/heredoc"

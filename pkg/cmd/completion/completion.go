@@ -16,8 +16,8 @@ package completion
 
 import (
 	"fmt"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"

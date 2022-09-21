@@ -16,13 +16,13 @@ package root
 
 import (
 	"github.com/MakeNowJust/heredoc"
-	authCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/auth"
-	completionCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/completion"
-	queryCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/query"
-	stageCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/stage"
-	versionCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/version"
-	warehouseCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	authCmd "github.com/databendcloud/bendsql/pkg/cmd/auth"
+	completionCmd "github.com/databendcloud/bendsql/pkg/cmd/completion"
+	queryCmd "github.com/databendcloud/bendsql/pkg/cmd/query"
+	stageCmd "github.com/databendcloud/bendsql/pkg/cmd/stage"
+	versionCmd "github.com/databendcloud/bendsql/pkg/cmd/version"
+	warehouseCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 

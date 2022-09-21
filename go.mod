@@ -1,4 +1,4 @@
-module github.com/datafuselabs/bendcloud-cli
+module github.com/databendcloud/bendsql
 
 go 1.18
 
