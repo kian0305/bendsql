@@ -15,7 +15,6 @@
 package build
 
 import (
-	"fmt"
 	"github.com/cli/safeexec"
 	"io"
 	"os"
@@ -45,11 +44,9 @@ func version() string {
 		return versionEnv
 	}
 	if desc, err := cmdOutput("git", "describe", "--tags"); err == nil {
-		fmt.Println(desc)
 		return desc
 	}
 	rev, _ := cmdOutput("git", "rev-parse", "--short", "HEAD")
-	fmt.Println(rev)
 	return rev
 }
 
