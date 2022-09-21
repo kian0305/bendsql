@@ -15,13 +15,13 @@
 package warehouse
 
 import (
-	warehouseCreateCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse/create"
-	warehouseDeleteCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse/delete"
-	warehouseListCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse/ls"
-	warehouseResumeCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse/resume"
-	warehouseStatusCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse/status"
-	warehouseSuspendCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/warehouse/suspend"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	warehouseCreateCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/create"
+	warehouseDeleteCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/delete"
+	warehouseListCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/ls"
+	warehouseResumeCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/resume"
+	warehouseStatusCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/status"
+	warehouseSuspendCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/suspend"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
 
 	"github.com/spf13/cobra"
 )

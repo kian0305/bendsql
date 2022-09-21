@@ -22,17 +22,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/datafuselabs/bendcloud-cli/utils"
+	"github.com/databendcloud/bendsql/utils"
 
 	"github.com/spf13/cobra"
 
 	surveyCore "github.com/AlecAivazis/survey/v2/core"
 	"github.com/AlecAivazis/survey/v2/terminal"
-	"github.com/datafuselabs/bendcloud-cli/internal/build"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmd/factory"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmd/root"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
+	"github.com/databendcloud/bendsql/internal/build"
+	"github.com/databendcloud/bendsql/pkg/cmd/factory"
+	"github.com/databendcloud/bendsql/pkg/cmd/root"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 	"github.com/mgutz/ansi"
 )
 

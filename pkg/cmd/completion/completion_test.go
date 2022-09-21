@@ -15,7 +15,7 @@
 package completion
 
 import (
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 	"strings"
 	"testing"
 

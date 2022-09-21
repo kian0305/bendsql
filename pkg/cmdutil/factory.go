@@ -19,11 +19,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/datafuselabs/bendcloud-cli/api"
+	"github.com/databendcloud/bendsql/api"
 
-	"github.com/datafuselabs/bendcloud-cli/internal/config"
+	"github.com/databendcloud/bendsql/internal/config"
 
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 )
 
 type Factory struct {

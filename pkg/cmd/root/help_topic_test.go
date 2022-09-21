@@ -15,7 +15,7 @@
 package root
 
 import (
-	"github.com/datafuselabs/bendcloud-cli/pkg/iostreams"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

@@ -15,10 +15,10 @@
 package auth
 
 import (
-	authConfigureCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/auth/configure"
-	authLoginCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/auth/login"
-	authTokenCmd "github.com/datafuselabs/bendcloud-cli/pkg/cmd/auth/token"
-	"github.com/datafuselabs/bendcloud-cli/pkg/cmdutil"
+	authConfigureCmd "github.com/databendcloud/bendsql/pkg/cmd/auth/configure"
+	authLoginCmd "github.com/databendcloud/bendsql/pkg/cmd/auth/login"
+	authTokenCmd "github.com/databendcloud/bendsql/pkg/cmd/auth/token"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
 	"github.com/spf13/cobra"
 )
 
