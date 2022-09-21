@@ -1,6 +1,6 @@
 # bendsql
 
-CLI for Databend Cloud
+CLI for [Databend Cloud](https://app.databend.com/)
 
 ## Installation
 
