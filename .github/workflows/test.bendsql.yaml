@@ -1,0 +1,25 @@
+name: Test bendctl
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "bendctl/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "bendctl/**"
+
+jobs:
+  build:
+    runs-on: [self-hosted, Linux, X64]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Ensure gobin
+        run: |
+          mkdir -p /tmp/go/bin
+          echo "GOBIN=/tmp/go/bin" >> $GITHUB_ENV
+
+      - name: Test
+        run: PATH=$PATH:$GOBIN make -C ./bendctl test
