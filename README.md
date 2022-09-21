@@ -1,11 +1,20 @@
 # bendsql
+
 CLI for Databend Cloud
 
 ## Installation
 
-### Unix
+### From source code
+
+Clone the repo and exec `make install`, it will install `bendsql` in `/usr/local/bin`
+
 ```shell
-make build && cp ./bin/bendsql /usr/local/bin
+make install
 ```
 
-Then `bendsql -h` and enjoy.
+### Binary
+
+Visit `https://github.com/databendcloud/bendsql/releases/latest
+` and download binary package according your arch.
+
+Then `bendsql -h`, enjoy it!
