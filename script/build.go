@@ -39,7 +39,7 @@ var tasks = map[string]func(string) error{
 		}
 
 		ldflags := os.Getenv("GO_LDFLAGS")
-		ldflags = fmt.Sprintf("-Xgithub.com/databendcloud/bendsql/internal/build.Version=%s %s", version(), ldflags)
+		ldflags = fmt.Sprintf("-X github.com/databendcloud/bendsql/internal/build.Version=%s %s", version(), ldflags)
 		ldflags = fmt.Sprintf("-X github.com/databendcloud/bendsql/internal/build.Date=%s %s", date(), ldflags)
 
 		return run("go", "build", "-trimpath", "-ldflags", ldflags, "-o", exe, "./cmd/bendsql")
