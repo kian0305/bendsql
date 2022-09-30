@@ -16,7 +16,7 @@ package auth
 
 import (
 	"fmt"
-	"strconv"
+	"os"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/MakeNowJust/heredoc"
@@ -158,6 +158,10 @@ func loginRun(opts *LoginOptions) error {
 		cfg.Warehouse = warehouses[0].Name
 	}
 
+	if endpoint := os.Getenv("BENDSQL_API_ENDPOINT"); endpoint != "" {
+		cfg.Endpoint = endpoint
+	}
+
 	cfg.Org = apiClient.CurrentOrgSlug
 	cfg.AccessToken = apiClient.AccessToken
 	cfg.RefreshToken = apiClient.RefreshToken
@@ -168,8 +172,4 @@ func loginRun(opts *LoginOptions) error {
 
 	logrus.Infof("%s logged in %s of Databend Cloud successfully.", cfg.UserEmail, cfg.Org)
 	return nil
-}
-
-func mustString(accountID uint64) string {
-	return strconv.FormatInt(int64(accountID), 10)
 }
