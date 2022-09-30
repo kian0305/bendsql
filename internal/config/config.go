@@ -150,6 +150,21 @@ func RenewTokens(accessToken, refreshToken string) error {
 	return nil
 }
 
+func SetUsingWarehouse(warehouse string) error {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
+		return os.ErrNotExist
+	}
+	cfg, err := NewConfig()
+	if err != nil {
+		return fmt.Errorf("config failed: %w", err)
+	}
+	err = cfg.Set(Warehouse, warehouse)
+	if err != nil {
+		return fmt.Errorf("set warehouse failed %w", err)
+	}
+	return nil
+}
+
 func GetAuthToken() (string, string) {
 	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return "", ""
