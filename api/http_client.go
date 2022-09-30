@@ -33,6 +33,7 @@ type APIClient struct {
 	RefreshToken     string
 	CurrentOrgSlug   string
 	CurrentWarehouse string
+	Endpoint         string
 }
 
 const (
@@ -52,6 +53,7 @@ func NewApiClient() *APIClient {
 		RefreshToken:     refreshToken,
 		CurrentOrgSlug:   config.GetOrg(),
 		CurrentWarehouse: config.GetWarehouse(),
+		Endpoint:         config.GetEndpoint(),
 	}
 }
 
@@ -118,6 +120,9 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 
 func (c *APIClient) makeURL(path string, args ...interface{}) string {
 	apiEndpoint := os.Getenv("BENDSQL_API_ENDPOINT")
+	if apiEndpoint == "" {
+		apiEndpoint = c.Endpoint
+	}
 	if apiEndpoint == "" {
 		apiEndpoint = defaultApiEndpoint
 	}
