@@ -35,6 +35,7 @@ const (
 	RefreshToken string = "refresh_token"
 	Warehouse    string = "warehouse"
 	Org          string = "org"
+	Endpoint     string = "endpoint"
 )
 
 const (
@@ -48,6 +49,7 @@ type Config struct {
 	RefreshToken string `ini:"refresh_token"`
 	Warehouse    string `ini:"warehouse"`
 	Org          string `ini:"org"`
+	Endpoint     string `init:"endpoint"`
 }
 
 type Configer interface {
@@ -90,7 +92,7 @@ func (c *Config) Write() error {
 	defaultSection.NewKey(Warehouse, c.Warehouse)
 	defaultSection.NewKey(Org, c.Org)
 	defaultSection.NewKey(UserEmail, c.UserEmail)
-
+	defaultSection.NewKey(Endpoint, c.Endpoint)
 	return cg.SaveTo(filepath.Join(ConfigDir(), bendsqlCinfigFile))
 }
 
@@ -179,6 +181,23 @@ func GetWarehouse() string {
 	return warehouse
 }
 
+func GetEndpoint() string {
+	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
+		return ""
+	}
+	cfg, err := NewConfig()
+	if err != nil {
+		logrus.Errorf("read config failed %v", err)
+		return ""
+	}
+	endpoint, err := cfg.Get(Endpoint)
+	if err != nil {
+		logrus.Errorf("get endpoint failed %v", err)
+		return ""
+	}
+	return endpoint
+}
+
 func GetUserEmail() string {
 	if !Exists(filepath.Join(ConfigDir(), bendsqlCinfigFile)) {
 		return ""
@@ -226,7 +245,7 @@ func ConfigDir() string {
 
 // Read bendsql configuration files from the local file system and
 // return a Config.
-var Read = func() (*Config, error) {
+func Read() (*Config, error) {
 	var err error
 	var iniCfg *ini.File
 	cfg := &Config{}
