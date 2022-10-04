@@ -6,7 +6,7 @@ Work seamlessly with [Databend Cloud](https://app.databend.com/) from the comman
 ## Installation
 
 ### go install
-Clone the repo and exec `cd cmd/bendsql && go install` and the `bendsql` will be installed in `$GOPATH/bin`.
+`go install github.com/databendcloud/bendsql/cmd/bendsql@v0.0.2`, then the `bendsql` will be installed in `$GOPATH/bin`.
 
 ### From source code
 Clone the repo and exec `make install`, it will install `bendsql` in `/usr/local/bin`
