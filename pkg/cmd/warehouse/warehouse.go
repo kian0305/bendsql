@@ -21,6 +21,7 @@ import (
 	warehouseResumeCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/resume"
 	warehouseStatusCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/status"
 	warehouseSuspendCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/suspend"
+	warehouseUseCmd "github.com/databendcloud/bendsql/pkg/cmd/warehouse/use"
 	"github.com/databendcloud/bendsql/pkg/cmdutil"
 
 	"github.com/spf13/cobra"
@@ -57,5 +58,6 @@ func NewWarehouseCmd(f *cmdutil.Factory) *cobra.Command {
 	warehouseCmd.AddCommand(warehouseSuspendCmd.NewCmdWarehouseSuspend(f))
 	warehouseCmd.AddCommand(warehouseCreateCmd.NewCmdWarehouseCreate(f))
 	warehouseCmd.AddCommand(warehouseDeleteCmd.NewCmdWarehouseDelete(f))
+	warehouseCmd.AddCommand(warehouseUseCmd.NewCmdWarehouseUse(f))
 	return warehouseCmd
 }
