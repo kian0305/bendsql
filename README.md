@@ -5,6 +5,9 @@ Work seamlessly with [Databend Cloud](https://app.databend.com/) from the comman
 
 ## Installation
 
+### brew
+For macOS, user can use `brew tap databendcloud/homebrew-tap && brew install bendsql` to install.
+
 ### go install
 Clone the repo and exec `cd cmd/bendsql && go install` and the `bendsql` will be installed in `$GOPATH/bin`.
 
