@@ -53,12 +53,15 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 		Example: heredoc.Doc(`
 			# exec SQL using warehouse 
 			# use sql
-			$ bendsql query --sql "YOURSQL" --warehouse [WAREHOUSENAME] [--verbose]
+			$ bendsql query "YOURSQL" --warehouse [WAREHOUSENAME] [--verbose]
 			
 			# use stdin
 			$ echo "select * from YOURTABLE limit 10" | bendsql query 
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) == 1 {
+				querySQL = args[0]
+			}
 			opts.Warehouse = warehouse
 			opts.QuerySQL = querySQL
 			opts.Verbose = verbose
@@ -98,7 +101,6 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 	}
 
 	cmd.Flags().StringVar(&warehouse, "warehouse", "", "warehouse")
-	cmd.Flags().StringVar(&querySQL, "sql", "", "querysql")
 	cmd.Flags().BoolVar(&verbose, "verbose", false, "display progress info across paginated results")
 
 	return cmd
