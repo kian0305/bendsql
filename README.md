@@ -23,4 +23,7 @@ make install
 Visit `https://github.com/databendcloud/bendsql/releases/latest
 ` and download binary package according your arch.
 
-Then `bendsql -h`, enjoy it!
+
+## Docs
+
+The [Docs](./docs/bendsql_docs.md) are provided to demonstrate how to use this tool. 
