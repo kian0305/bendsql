@@ -109,12 +109,6 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 		}
 	}
 
-	//if method != "GET" {
-	//	respBody := string(httpRespBody)
-	//	if strings.Contains(respBody, "Token") || strings.Contains(respBody, "secret") {
-	//		log.Printf("webapi.doRequest %s url=%s req=nodata resp=nodata", method, url)
-	//	}
-	//}
 	return nil
 }
 
