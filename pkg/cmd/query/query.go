@@ -15,9 +15,11 @@
 package query
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
-	"os"
+	"log"
+	"reflect"
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
@@ -25,7 +27,7 @@ import (
 	"github.com/databendcloud/bendsql/internal/config"
 	"github.com/databendcloud/bendsql/pkg/cmdutil"
 	"github.com/databendcloud/bendsql/pkg/iostreams"
-	"github.com/sirupsen/logrus"
+	dc "github.com/databendcloud/databend-go"
 	"github.com/spf13/cobra"
 )
 
@@ -92,7 +94,7 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 				}
 				opts.Warehouse = warehouse
 			}
-			err = execQuery(opts)
+			err = execQueryByDriver(opts)
 			if err != nil {
 				fmt.Printf("exec query failed, err: %v", err)
 				return
@@ -106,50 +108,89 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 	return cmd
 }
 
-func execQuery(opts *querySQLOptions) error {
+func newDatabendCloudDSN(opts *querySQLOptions) (string, error) {
+	var dsn string
 	apiClient, err := opts.ApiClient()
+	if err != nil {
+		return dsn, err
+	}
+	cfg := dc.NewConfig()
+	cfg.Warehouse = apiClient.CurrentWarehouse
+	cfg.Org = apiClient.CurrentOrgSlug
+	cfg.User = apiClient.UserEmail
+	cfg.Password = apiClient.Password
+	cfg.AccessToken = apiClient.AccessToken
+	cfg.RefreshToken = apiClient.RefreshToken
+
+	dsn = cfg.FormatDSN()
+	return dsn, nil
+}
+
+func execQueryByDriver(opts *querySQLOptions) error {
+	dsn, err := newDatabendCloudDSN(opts)
 	if err != nil {
 		return err
 	}
-	respCh := make(chan api.QueryResponse)
-	errCh := make(chan error)
-	logrus.Infof("start query in warehouse %s: %s", opts.Warehouse, opts.QuerySQL)
-	go func() {
-		err := apiClient.QuerySync(opts.Warehouse, opts.QuerySQL, respCh)
-		errCh <- err
-	}()
-
-	for {
-		select {
-		case err := <-errCh:
-			if err != nil {
-				logrus.Errorf("error on query: %s", err)
-				os.Exit(1)
-			} else {
-				os.Exit(0)
-			}
-		case resp := <-respCh:
-			if opts.Verbose {
-				logrus.WithFields(logrus.Fields{
-					"queryID":        resp.Id,
-					"runningSeconds": (resp.Stats.RunningTimeMS / 1000),
-					"scanBytes":      resp.Stats.ScanProgress.Bytes,
-					"scanRows":       resp.Stats.ScanProgress.Rows,
-				}).Info("query progress")
-			}
-			var schemaStr string
-			for i := range resp.Schema.Fields {
-				schemaStr += fmt.Sprintf("| %v", resp.Schema.Fields[i].Name)
-			}
-
-			for i := range resp.Data {
-				var a string
-				for j := range resp.Data[i] {
-					a += fmt.Sprintf("| %v ", resp.Data[i][j])
-				}
-				a += "| \n"
-				fmt.Println(a)
-			}
-		}
+	db, err := sql.Open("databend", dsn)
+	if err != nil {
+		log.Fatalf("failed to connect. %v, err: %v", dsn, err)
 	}
+	defer db.Close()
+
+	rows, err := db.Query(opts.QuerySQL)
+	if err != nil {
+		return err
+	}
+	_, err = scanValues(rows)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func scanValues(rows *sql.Rows) ([][]interface{}, error) {
+	var err error
+	var result [][]interface{}
+	ct, err := rows.ColumnTypes()
+	if err != nil {
+		return nil, err
+	}
+	types := make([]reflect.Type, len(ct))
+	for i, v := range ct {
+		types[i] = v.ScanType()
+	}
+	ptrs := make([]interface{}, len(types))
+	for rows.Next() {
+		if err = rows.Err(); err != nil {
+			return nil, err
+		}
+		for i, t := range types {
+			ptrs[i] = reflect.New(t).Interface()
+		}
+		err = rows.Scan(ptrs...)
+		if err != nil {
+			return nil, err
+		}
+		values := make([]interface{}, len(types))
+		for i, p := range ptrs {
+			values[i] = reflect.ValueOf(p).Elem().Interface()
+		}
+		result = append(result, values)
+	}
+
+	var schemaStr string
+	for i := range ct {
+		schemaStr += fmt.Sprintf("| %v(%s) ", ct[i].Name(), types[i])
+	}
+	fmt.Println(schemaStr + " |")
+	for i := range result {
+		var a string
+		for j := range result[i] {
+			a += fmt.Sprintf("| %v ", result[i][j])
+		}
+		a += "| \n"
+		fmt.Println(a)
+	}
+	return result, nil
 }
