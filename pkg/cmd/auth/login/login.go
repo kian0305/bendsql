@@ -34,9 +34,6 @@ type LoginType int
 const (
 	UserPasswordLogin LoginType = 0
 	AccessTokenLogin  LoginType = 1
-
-	ApiEndpointGlobal = "https://app.databend.com"
-	ApiEndpointCN     = "https://app.databend.cn"
 )
 
 type LoginOptions struct {
@@ -48,7 +45,6 @@ type LoginOptions struct {
 	Email          string
 	Password       string
 	Org            string
-	Endpoint       string
 }
 
 func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Command {
@@ -57,6 +53,7 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 		ApiClient: f.ApiClient,
 	}
 
+	var email, password, org string
 	cmd := &cobra.Command{
 		Use:   "login",
 		Args:  cobra.ExactArgs(0),
@@ -67,8 +64,8 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 			The default authentication mode is a user-password flow. After completion, an
 			authentication token will be stored internally.
 
-			Alternatively, bendcli will use the authentication token found in environment variables.`,
-		),
+			Alternatively, bendcli will use the authentication token found in environment variables.
+		`, "`"),
 		Example: heredoc.Doc(`
 			# start interactive setup
 			$ bendsql auth login
@@ -77,11 +74,14 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 			$ bendsql auth login --email EMAIL --password PASSWORD [--org ORG]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if opts.IO.CanPrompt() && (opts.Email == "" || opts.Password == "") {
+			if opts.IO.CanPrompt() && (email == "" || password == "") {
 				// default use interactive tty
 				opts.Interactive = true
 			}
 
+			opts.Email = email
+			opts.Password = password
+			opts.Org = org
 			opts.MainExecutable = f.Executable()
 			if runF != nil {
 				return runF(opts)
@@ -91,10 +91,9 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 		},
 	}
 
-	cmd.Flags().StringVar(&opts.Org, "org", "", "org")
-	cmd.Flags().StringVar(&opts.Email, "email", "", "email")
-	cmd.Flags().StringVar(&opts.Password, "password", "", "password")
-	cmd.Flags().StringVar(&opts.Endpoint, "endpoint", "", "endpoint")
+	cmd.Flags().StringVar(&org, "org", "", "org")
+	cmd.Flags().StringVar(&email, "email", "", "email")
+	cmd.Flags().StringVar(&password, "password", "", "password")
 	return cmd
 }
 
@@ -103,35 +102,6 @@ func loginRun(opts *LoginOptions) error {
 	apiClient, err := opts.ApiClient()
 	if err != nil {
 		return err
-	}
-
-	if endpoint := os.Getenv("BENDSQL_API_ENDPOINT"); endpoint != "" {
-		cfg.Endpoint = endpoint
-	}
-	if cfg.Endpoint == "" {
-		cfg.Endpoint = opts.Endpoint
-	}
-	// interactive select endpoint
-	if cfg.Endpoint == "" {
-		err = prompt.SurveyAskOne(
-			&survey.Select{
-				Message: "Select your login endpoint:",
-				Options: []string{api.EndpointGlobal, api.EndpointCN},
-				Default: api.EndpointGlobal,
-				Description: func(value string, index int) string {
-					switch value {
-					case api.EndpointGlobal:
-						return "Global"
-					case api.EndpointCN:
-						return "China"
-					default:
-						return ""
-					}
-				},
-			}, &opts.Endpoint, survey.WithValidator(survey.Required))
-		if err != nil {
-			return fmt.Errorf("could not prompt: %w", err)
-		}
 	}
 
 	// interactive login
@@ -186,6 +156,10 @@ func loginRun(opts *LoginOptions) error {
 		logrus.Warnf("you have no warehouse in %s", cfg.Org)
 	} else {
 		cfg.Warehouse = warehouses[0].Name
+	}
+
+	if endpoint := os.Getenv("BENDSQL_API_ENDPOINT"); endpoint != "" {
+		cfg.Endpoint = endpoint
 	}
 
 	cfg.Org = apiClient.CurrentOrgSlug
