@@ -192,6 +192,6 @@ func loginRun(opts *LoginOptions) error {
 		return fmt.Errorf("save config failed:%w", err)
 	}
 
-	logrus.Infof("%s logged in %s of Databend Cloud successfully.", cfg.UserEmail, cfg.Org)
+	logrus.Infof("%s logged in %s of Databend Cloud %s successfully.", cfg.UserEmail, cfg.Org, cfg.Endpoint)
 	return nil
 }
