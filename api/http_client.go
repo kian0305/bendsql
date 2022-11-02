@@ -45,8 +45,8 @@ const (
 	timeZone        = "Time-Zone"
 	userAgent       = "User-Agent"
 
-	EndpointGlobal = "https://app.databend.com"
-	EndpointCN     = "https://app.databend.cn"
+	EndpointGlobal = "app.databend.com"
+	EndpointCN     = "app.databend.cn"
 )
 
 func NewApiClient() *APIClient {

@@ -34,9 +34,6 @@ type LoginType int
 const (
 	UserPasswordLogin LoginType = 0
 	AccessTokenLogin  LoginType = 1
-
-	ApiEndpointGlobal = "https://app.databend.com"
-	ApiEndpointCN     = "https://app.databend.cn"
 )
 
 type LoginOptions struct {
@@ -106,13 +103,10 @@ func loginRun(opts *LoginOptions) error {
 	}
 
 	if endpoint := os.Getenv("BENDSQL_API_ENDPOINT"); endpoint != "" {
-		cfg.Endpoint = endpoint
-	}
-	if cfg.Endpoint == "" {
-		cfg.Endpoint = opts.Endpoint
+		opts.Endpoint = endpoint
 	}
 	// interactive select endpoint
-	if cfg.Endpoint == "" {
+	if opts.Endpoint == "" {
 		err = prompt.SurveyAskOne(
 			&survey.Select{
 				Message: "Select your login endpoint:",
@@ -155,6 +149,7 @@ func loginRun(opts *LoginOptions) error {
 
 	apiClient.UserEmail = opts.Email
 	apiClient.Password = opts.Password
+	apiClient.Endpoint = opts.Endpoint
 	err = apiClient.Login()
 	if err != nil {
 		return err
@@ -191,6 +186,7 @@ func loginRun(opts *LoginOptions) error {
 	cfg.Org = apiClient.CurrentOrgSlug
 	cfg.AccessToken = apiClient.AccessToken
 	cfg.RefreshToken = apiClient.RefreshToken
+	cfg.Endpoint = apiClient.Endpoint
 	err = cfg.Write()
 	if err != nil {
 		return fmt.Errorf("save config failed:%w", err)
