@@ -45,8 +45,8 @@ const (
 	timeZone        = "Time-Zone"
 	userAgent       = "User-Agent"
 
-	EndpointGlobal = "app.databend.com"
-	EndpointCN     = "app.databend.cn"
+	EndpointGlobal = "https://app.databend.com"
+	EndpointCN     = "https://app.databend.cn"
 )
 
 func NewApiClient() *APIClient {
@@ -71,7 +71,10 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 		}
 	}
 
-	url := c.makeURL(path, nil)
+	url, err := c.makeURL(path)
+	if err != nil {
+		return err
+	}
 	httpReq, err := http.NewRequest(method, url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -115,7 +118,7 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 	return nil
 }
 
-func (c *APIClient) makeURL(path string, args map[string]string) string {
+func (c *APIClient) makeURL(path string) (string, error) {
 	apiEndpoint := os.Getenv("BENDSQL_API_ENDPOINT")
 	if apiEndpoint == "" {
 		apiEndpoint = c.Endpoint
@@ -123,17 +126,10 @@ func (c *APIClient) makeURL(path string, args map[string]string) string {
 	if apiEndpoint == "" {
 		apiEndpoint = EndpointGlobal
 	}
-	u := &url.URL{
-		Scheme: "https",
-		Host:   apiEndpoint,
-		Path:   path,
+	u, err := url.Parse(apiEndpoint)
+	if err != nil {
+		return "", err
 	}
-	if args != nil {
-		q := u.Query()
-		for k, v := range args {
-			q.Add(k, v)
-		}
-		u.RawQuery = q.Encode()
-	}
-	return u.String()
+	u.Path = path
+	return u.String(), nil
 }
