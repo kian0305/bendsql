@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"reflect"
 	"strings"
 
@@ -114,7 +115,13 @@ func newDatabendCloudDSN(opts *querySQLOptions) (string, error) {
 	if err != nil {
 		return dsn, err
 	}
+	u, err := url.Parse(apiClient.Endpoint)
+	if err != nil {
+		return "", err
+	}
 	cfg := dc.NewConfig()
+	cfg.Host = u.Host
+	cfg.Scheme = u.Scheme
 	cfg.Warehouse = apiClient.CurrentWarehouse
 	cfg.Org = apiClient.CurrentOrgSlug
 	cfg.User = apiClient.UserEmail
