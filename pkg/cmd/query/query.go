@@ -20,6 +20,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 
@@ -54,12 +55,12 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 		Short: "Exec query SQL using warehouse",
 		Long:  "Exec query SQL using warehouse",
 		Example: heredoc.Doc(`
-			# exec SQL using warehouse 
+			# exec SQL using warehouse
 			# use sql
 			$ bendsql query "YOURSQL" --warehouse [WAREHOUSENAME] [--verbose]
-			
+
 			# use stdin
-			$ echo "select * from YOURTABLE limit 10" | bendsql query 
+			$ echo "select * from YOURTABLE limit 10" | bendsql query
 		`),
 		Run: func(cmd *cobra.Command, args []string) {
 			if len(args) == 1 {
@@ -81,7 +82,7 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 				sql, err := io.ReadAll(opts.IO.In)
 				if err != nil {
 					fmt.Printf("failed to read sql from standard input: %v", err)
-					return
+					os.Exit(1)
 				}
 				opts.QuerySQL = strings.TrimSpace(string(sql))
 			}
@@ -91,14 +92,14 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 				warehouse, err = cfg.Get(config.Warehouse)
 				if warehouse == "" || err != nil {
 					fmt.Printf("get default warehouse failed, please your default warehouse in $HOME/.config/bendsql/bendsql.ini")
-					return
+					os.Exit(1)
 				}
 				opts.Warehouse = warehouse
 			}
 			err = execQueryByDriver(opts)
 			if err != nil {
 				fmt.Printf("exec query failed, err: %v", err)
-				return
+				os.Exit(1)
 			}
 		},
 	}
@@ -122,7 +123,7 @@ func newDatabendCloudDSN(opts *querySQLOptions) (string, error) {
 	cfg := dc.NewConfig()
 	cfg.Host = u.Host
 	cfg.Scheme = u.Scheme
-	cfg.Warehouse = apiClient.CurrentWarehouse
+	cfg.Warehouse = opts.Warehouse
 	cfg.Org = apiClient.CurrentOrgSlug
 	cfg.User = apiClient.UserEmail
 	cfg.Password = apiClient.Password
