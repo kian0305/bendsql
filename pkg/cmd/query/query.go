@@ -129,6 +129,7 @@ func newDatabendCloudDSN(opts *querySQLOptions) (string, error) {
 	cfg.Password = apiClient.Password
 	cfg.AccessToken = apiClient.AccessToken
 	cfg.RefreshToken = apiClient.RefreshToken
+	cfg.Debug = opts.Verbose
 
 	dsn = cfg.FormatDSN()
 	return dsn, nil
