@@ -49,7 +49,7 @@ type LoginOptions struct {
 	Endpoint       string
 }
 
-func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Command {
+func NewCmdLogin(f *cmdutil.Factory) *cobra.Command {
 	opts := &LoginOptions{
 		IO:        f.IOStreams,
 		ApiClient: f.ApiClient,
@@ -69,22 +69,19 @@ func NewCmdLogin(f *cmdutil.Factory, runF func(*LoginOptions) error) *cobra.Comm
 		),
 		Example: heredoc.Doc(`
 			# start interactive setup
-			$ bendsql auth login
+			$ bendsql login
 
 			# authenticate by reading the token from a file
-			$ bendsql auth login --email EMAIL --password PASSWORD [--org ORG]
+			$ bendsql login --email EMAIL --password PASSWORD [--org ORG]
 		`),
+		Annotations: map[string]string{
+			"IsCore": "true",
+		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if opts.IO.CanPrompt() && (opts.Email == "" || opts.Password == "") {
 				// default use interactive tty
 				opts.Interactive = true
 			}
-
-			opts.MainExecutable = f.Executable()
-			if runF != nil {
-				return runF(opts)
-			}
-
 			return loginRun(opts)
 		},
 	}
@@ -100,7 +97,7 @@ func loginRun(opts *LoginOptions) error {
 	cfg := opts.Config
 	apiClient, err := opts.ApiClient()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "could not create api client")
 	}
 
 	if endpoint := os.Getenv("BENDSQL_API_ENDPOINT"); endpoint != "" {
@@ -125,7 +122,7 @@ func loginRun(opts *LoginOptions) error {
 				},
 			}, &opts.Endpoint, survey.WithValidator(survey.Required))
 		if err != nil {
-			return fmt.Errorf("could not prompt: %w", err)
+			return errors.Wrap(err, "could not prompt")
 		}
 	}
 
@@ -136,7 +133,7 @@ func loginRun(opts *LoginOptions) error {
 				Message: "Paste your user email:",
 			}, &opts.Email, survey.WithValidator(survey.Required))
 		if err != nil {
-			return fmt.Errorf("could not prompt: %w", err)
+			return errors.Wrap(err, "could not prompt")
 		}
 	}
 	if opts.Password == "" {
@@ -144,26 +141,14 @@ func loginRun(opts *LoginOptions) error {
 			Message: "Paste your password:",
 		}, &opts.Password, survey.WithValidator(survey.Required))
 		if err != nil {
-			return fmt.Errorf("could not prompt: %w", err)
+			return errors.Wrap(err, "could not prompt")
 		}
 	}
 
-	apiClient.UserEmail = opts.Email
-	apiClient.Password = opts.Password
-	apiClient.Endpoint = opts.Endpoint
-	err = apiClient.Login()
+	apiClient.SetEndpoint(opts.Endpoint)
+	err = apiClient.Login(opts.Email, opts.Password)
 	if err != nil {
 		return err
-	}
-
-	// get current account info
-	currentAccountInfo, err := apiClient.GetCurrentAccountInfo()
-	if err != nil {
-		return fmt.Errorf("get current account failed: %w", err)
-	}
-	// TODO: new apiClient in a func: sjhan
-	if cfg.UserEmail == "" {
-		cfg.UserEmail = currentAccountInfo.Email
 	}
 
 	orgDtos, err := apiClient.ListOrgs()
@@ -208,9 +193,8 @@ func loginRun(opts *LoginOptions) error {
 	if currentOrg == nil {
 		return fmt.Errorf("org %s not found", opts.Org)
 	}
-	apiClient.CurrentOrgSlug = currentOrg.OrgSlug
-	cfg.Org = currentOrg.OrgSlug
-	cfg.Gateway = currentOrg.Gateway
+
+	apiClient.SetCurrentOrg(currentOrg.OrgSlug, currentOrg.OrgTenantID, currentOrg.Gateway)
 
 	warehouses, err := apiClient.ListWarehouses()
 	if err != nil || len(warehouses) == 0 {
@@ -221,14 +205,11 @@ func loginRun(opts *LoginOptions) error {
 		cfg.Warehouse = warehouses[0].Name
 	}
 
-	cfg.AccessToken = apiClient.AccessToken
-	cfg.RefreshToken = apiClient.RefreshToken
-	cfg.Endpoint = apiClient.Endpoint
-	err = cfg.Write()
+	err = apiClient.WriteConfig()
 	if err != nil {
-		return fmt.Errorf("save config failed:%w", err)
+		return errors.Wrap(err, "could not write config")
 	}
 
-	logrus.Infof("%s logged in %s of Databend Cloud %s successfully.", cfg.UserEmail, cfg.Org, cfg.Endpoint)
+	logrus.Infof("logged in %s of Databend Cloud %s successfully.", cfg.Org, cfg.Endpoint)
 	return nil
 }

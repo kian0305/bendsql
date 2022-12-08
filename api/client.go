@@ -17,12 +17,12 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/databendcloud/bendsql/internal/config"
 	dc "github.com/databendcloud/databend-go"
@@ -30,13 +30,7 @@ import (
 )
 
 type APIClient struct {
-	UserEmail        string
-	Password         string
-	AccessToken      string
-	RefreshToken     string
-	CurrentOrgSlug   string
-	CurrentWarehouse string
-	Endpoint         string
+	cfg *config.Config
 }
 
 const (
@@ -52,63 +46,105 @@ const (
 )
 
 func NewApiClient() (*APIClient, error) {
-	accessToken, refreshToken, err := config.GetAuthToken()
+	cfg, err := config.GetConfig()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get auth token")
+		return nil, errors.Wrap(err, "failed to get config")
 	}
 	client := &APIClient{
-		AccessToken:      accessToken,
-		RefreshToken:     refreshToken,
-		CurrentOrgSlug:   config.GetOrg(),
-		CurrentWarehouse: config.GetWarehouse(),
-		Endpoint:         config.GetEndpoint(),
+		cfg: cfg,
 	}
 	return client, nil
 }
 
+func (c *APIClient) WriteConfig() error {
+	return config.WriteConfig(c.cfg)
+}
+
+func (c *APIClient) CurrentWarehouse() string {
+	return c.cfg.Warehouse
+}
+
+func (c *APIClient) SetCurrentWarehouse(warehouse string) error {
+	warehouseList, err := c.ListWarehouses()
+	if err != nil {
+		return errors.Wrap(err, "failed to list warehouses")
+	}
+	for i := range warehouseList {
+		if warehouse == warehouseList[i].Name {
+			c.cfg.Warehouse = warehouse
+			return c.WriteConfig()
+		}
+	}
+	return errors.Errorf("warehouse %s not found", warehouse)
+}
+
+func (c *APIClient) SetEndpoint(endpoint string) {
+	c.cfg.Endpoint = endpoint
+}
+
+func (c *APIClient) SetCurrentOrg(org, tenant, gateway string) {
+	c.cfg.Org = org
+	c.cfg.Tenant = tenant
+	c.cfg.Gateway = gateway
+}
+
 func (c *APIClient) DoRequest(method, path string, headers http.Header, req interface{}, resp interface{}) error {
+	if c.cfg.Token == nil {
+		return errors.New("please use `bendsql login` to login your account first")
+	}
+	if c.cfg.Token.ExpiresAt.Before(time.Now()) {
+		err := c.RefreshToken()
+		if err != nil {
+			return errors.Wrap(err, "failed to refresh token")
+		}
+	}
+	if headers != nil {
+		headers = headers.Clone()
+	} else {
+		headers = http.Header{}
+	}
+	headers.Set(authorization, "Bearer "+c.cfg.Token.AccessToken)
+	return c.request(method, path, headers, req, resp)
+}
+
+func (c *APIClient) request(method, path string, headers http.Header, req interface{}, resp interface{}) error {
 	var err error
 
 	reqBody := []byte{}
 	if req != nil {
 		reqBody, err = json.Marshal(req)
 		if err != nil {
-			panic(err)
+			return errors.Wrap(err, "failed to marshal request body")
 		}
 	}
 
 	url, err := c.makeURL(path)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to make url")
 	}
 	httpReq, err := http.NewRequest(method, url, bytes.NewBuffer(reqBody))
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to create http request")
 	}
 
-	if headers != nil {
-		httpReq.Header = headers.Clone()
-	}
+	httpReq.Header = headers
 	httpReq.Header.Set(contentType, jsonContentType)
 	httpReq.Header.Set(accept, jsonContentType)
-	if len(c.AccessToken) > 0 {
-		httpReq.Header.Set(authorization, "Bearer "+c.AccessToken)
-	}
 
 	httpClient := &http.Client{}
 	httpResp, err := httpClient.Do(httpReq)
 	if err != nil {
-		return fmt.Errorf("failed http do request: %w", err)
+		return errors.Wrap(err, "http request error")
 	}
 	defer httpResp.Body.Close()
 
 	httpRespBody, err := io.ReadAll(httpResp.Body)
 	if err != nil {
-		return fmt.Errorf("io read error: %w", err)
+		return errors.Wrap(err, "failed to read http response body")
 	}
 
 	if httpResp.StatusCode == http.StatusUnauthorized {
-		return dc.NewAPIError("please use `bendsql auth login` to login your account.", httpResp.StatusCode, httpRespBody)
+		return dc.NewAPIError("please use `bendsql login` to login your account.", httpResp.StatusCode, httpRespBody)
 	} else if httpResp.StatusCode >= 500 {
 		return dc.NewAPIError("please retry again later.", httpResp.StatusCode, httpRespBody)
 	} else if httpResp.StatusCode >= 400 {
@@ -117,7 +153,7 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 
 	if resp != nil {
 		if err := json.Unmarshal(httpRespBody, &resp); err != nil {
-			return err
+			return errors.Wrap(err, "failed to unmarshal http response body")
 		}
 	}
 
@@ -127,28 +163,32 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 func (c *APIClient) makeURL(path string) (string, error) {
 	apiEndpoint := os.Getenv("BENDSQL_API_ENDPOINT")
 	if apiEndpoint == "" {
-		apiEndpoint = c.Endpoint
+		apiEndpoint = c.cfg.Endpoint
 	}
 	if apiEndpoint == "" {
 		apiEndpoint = EndpointGlobal
 	}
 	u, err := url.Parse(apiEndpoint)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed to parse api endpoint")
 	}
 	u.Path = path
 	return u.String(), nil
 }
 
 func (c *APIClient) GetCloudDSN() (dsn string, err error) {
+	if c.cfg.Token == nil {
+		return "", errors.New("please use `bendsql login` to login your account first")
+	}
+
 	cfg := dc.NewConfig()
-	if strings.HasPrefix(c.Endpoint, "http://") {
+	if strings.HasPrefix(c.cfg.Endpoint, "http://") {
 		cfg.SSLMode = "disable"
 	}
-	cfg.Host = config.GetGateway()
-	cfg.Tenant = config.GetTenant()
-	cfg.Warehouse = c.CurrentWarehouse
-	cfg.AccessToken = c.AccessToken
+	cfg.Host = c.cfg.Gateway
+	cfg.Tenant = c.cfg.Tenant
+	cfg.Warehouse = c.cfg.Warehouse
+	cfg.AccessToken = c.cfg.Token.AccessToken
 
 	dsn = cfg.FormatDSN()
 	return

@@ -15,19 +15,19 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/avast/retry-go"
 	dc "github.com/databendcloud/databend-go"
+	"github.com/pkg/errors"
 )
 
 func (c *APIClient) Query(warehouseName, query string) (*QueryResponse, error) {
 	headers := make(http.Header)
 	headers.Set("X-DATABENDCLOUD-WAREHOUSE", warehouseName)
-	headers.Set("X-DATABENDCLOUD-ORG", string(c.CurrentOrgSlug))
+	headers.Set("X-DATABENDCLOUD-ORG", string(c.cfg.Org))
 	request := QueryRequest{
 		SQL: query,
 	}
@@ -38,7 +38,7 @@ func (c *APIClient) Query(warehouseName, query string) (*QueryResponse, error) {
 		return nil, err
 	}
 	if result.Error != nil {
-		return &result, fmt.Errorf("query %s in org %s has error: %v", warehouseName, c.CurrentOrgSlug, result.Error)
+		return &result, errors.Wrapf(result.Error, "query %s in org %s: %s", warehouseName, c.cfg.Org)
 	}
 	return &result, nil
 }
@@ -49,7 +49,7 @@ func (c *APIClient) QuerySync(warehouseName string, sql string, respCh chan Quer
 		func() error {
 			r, err := c.Query(warehouseName, sql)
 			if err != nil {
-				return fmt.Errorf("query failed: %w", err)
+				return errors.Wrap(err, "query failed")
 			}
 			r0 = r
 			return nil
@@ -65,10 +65,10 @@ func (c *APIClient) QuerySync(warehouseName string, sql string, respCh chan Quer
 		retry.Attempts(10),
 	)
 	if err != nil {
-		return fmt.Errorf("query failed after 10 retries: %w", err)
+		return errors.Wrap(err, "query failed")
 	}
 	if r0.Error != nil {
-		return fmt.Errorf("query has error: %+v", r0.Error)
+		return errors.Wrap(r0.Error, "query has error")
 	}
 	if err != nil {
 		return err
@@ -78,10 +78,10 @@ func (c *APIClient) QuerySync(warehouseName string, sql string, respCh chan Quer
 	for len(nextUri) != 0 {
 		p, err := c.QueryPage(warehouseName, r0.Id, nextUri)
 		if err != nil {
-			return err
+			return errors.Wrap(err, "query page failed")
 		}
 		if p.Error != nil {
-			return fmt.Errorf("query has error: %+v", p.Error)
+			return errors.Wrap(p.Error, "query has error")
 		}
 		nextUri = p.NextURI
 		respCh <- *p
@@ -93,13 +93,13 @@ func (c *APIClient) QueryPage(warehouseName, queryId, path string) (*QueryRespon
 	headers := make(http.Header)
 	headers.Set("queryID", queryId)
 	headers.Set("X-DATABENDCLOUD-WAREHOUSE", warehouseName)
-	headers.Set("X-DATABENDCLOUD-ORG", string(c.CurrentOrgSlug))
+	headers.Set("X-DATABENDCLOUD-ORG", string(c.cfg.Org))
 	var result QueryResponse
 	err := retry.Do(
 		func() error {
 			err := c.DoRequest("GET", path, headers, nil, &result)
 			if err != nil {
-				return fmt.Errorf("query failed: %w", err)
+				return errors.Wrap(err, "query page failed")
 			}
 			return nil
 		},
@@ -112,15 +112,9 @@ func (c *APIClient) QueryPage(warehouseName, queryId, path string) (*QueryRespon
 	return &result, nil
 }
 
-type QueryError struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-	Kind    string `json:"kind"`
-}
-
 type QueryResponse struct {
 	Data     [][]interface{} `json:"data"`
-	Error    *QueryError     `json:"error"`
+	Error    *dc.QueryError  `json:"error"`
 	FinalURI string          `json:"final_uri"`
 	Id       string          `json:"id"`
 	NextURI  string          `json:"next_uri"`
