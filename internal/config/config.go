@@ -25,7 +25,8 @@ import (
 )
 
 const (
-	configFileEnv = "BENDSQL_CONFIG"
+	TARGET_COMMUNITY = "community"
+	TARGET_CLOUD     = "cloud"
 )
 
 var (
@@ -33,7 +34,7 @@ var (
 )
 
 func init() {
-	if a := os.Getenv(configFileEnv); a != "" {
+	if a := os.Getenv("BENDSQL_CONFIG"); a != "" {
 		configFile = a
 	} else {
 		d, err := os.UserHomeDir()
@@ -59,6 +60,23 @@ func init() {
 }
 
 type Config struct {
+	Target    string           `toml:"target"`
+	Cloud     *CloudConfig     `toml:"cloud,omitempty"`
+	Community *CommunityConfig `toml:"community,omitempty"`
+}
+
+type CommunityConfig struct {
+	Host     string `toml:"host"`
+	Port     int    `toml:"port"`
+	Username string `toml:"username"`
+	Password string `toml:"password"`
+	Database string `toml:"database"`
+	SSLMode  string `toml:"sslmode"`
+
+	Options map[string]string `toml:"options"`
+}
+
+type CloudConfig struct {
 	Org       string `toml:"org"`
 	Tenant    string `toml:"tenant"`
 	Warehouse string `toml:"warehouse"`

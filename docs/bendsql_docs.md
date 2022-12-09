@@ -1,5 +1,5 @@
 ## What is `bendsql`?
-bendsql is a handy command line interface tool to work with Databend Cloud smoothly and efficiently as with a web browser. Use the tool as an alternative to manage your warehouses and stages, upload files, and run SQL queries.
+bendsql is a handy command line interface tool to work with Databend Cloud smoothly and efficiently as with a web browser. Use the tool as an alternative to manage your warehouses and run SQL queries.
 
 
 ## How to install bendsql
@@ -51,25 +51,6 @@ INHERITED FLAGS
 LEARN MORE
   Use 'bendsql cloud <command> <subcommand> --help' for more information about a command.
 ```
-
-### Manage Stages
-
-`bendsql` allows you to upload files to a stage and view the details of the staged files.
-
-```shell
-Operate stage
-USAGE
-  bendsql cloud stage <command> [flags]
-CORE COMMANDS
-  ls:          List stage or files in stage
-  upload:      Upload file to stage using warehouse
-INHERITED FLAGS
-  --help   Show help for command
-LEARN MORE
-  Use 'bendsql cloud <command> <subcommand> --help' for more information about a command.
-```
-
-![](https://tva2.sinaimg.cn/large/005UfcOkly8h78cduok6uj30zk04yaay.jpg)
 
 
 ## Work with BendSQL

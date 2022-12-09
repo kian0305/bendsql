@@ -29,8 +29,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-type APIClient struct {
-	cfg *config.Config
+type Client struct {
+	cfg *config.CloudConfig
 }
 
 const (
@@ -45,50 +45,78 @@ const (
 	EndpointCN     = "https://app.databend.cn"
 )
 
-func NewApiClient() (*APIClient, error) {
+func NewClient() (*Client, error) {
 	cfg, err := config.GetConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get config")
 	}
-	client := &APIClient{
-		cfg: cfg,
+
+	if cfg.Cloud == nil {
+		cfg.Cloud = &config.CloudConfig{
+			Endpoint: EndpointGlobal,
+		}
+	}
+
+	client := &Client{
+		cfg: cfg.Cloud,
 	}
 	return client, nil
 }
 
-func (c *APIClient) WriteConfig() error {
-	return config.WriteConfig(c.cfg)
+func (c *Client) WriteConfig() error {
+	cfg, err := config.GetConfig()
+	if err != nil {
+		return errors.Wrap(err, "failed to get config")
+	}
+	cfg.Target = config.TARGET_CLOUD
+	cfg.Cloud = c.cfg
+	return config.WriteConfig(cfg)
 }
 
-func (c *APIClient) CurrentWarehouse() string {
+func (c *Client) CurrentWarehouse() string {
 	return c.cfg.Warehouse
 }
 
-func (c *APIClient) SetCurrentWarehouse(warehouse string) error {
+func (c *Client) CurrentOrganization() string {
+	return c.cfg.Org
+}
+
+func (c *Client) CurrentEndpoint() string {
+	return c.cfg.Endpoint
+}
+
+func (c *Client) SetCurrentWarehouse(warehouse string) error {
 	warehouseList, err := c.ListWarehouses()
 	if err != nil {
 		return errors.Wrap(err, "failed to list warehouses")
 	}
+	if len(warehouseList) == 0 {
+		return errors.New("no warehouse found")
+	}
+	if warehouse == "" {
+		c.cfg.Warehouse = warehouseList[0].Name
+		return nil
+	}
 	for i := range warehouseList {
 		if warehouse == warehouseList[i].Name {
 			c.cfg.Warehouse = warehouse
-			return c.WriteConfig()
+			return nil
 		}
 	}
 	return errors.Errorf("warehouse %s not found", warehouse)
 }
 
-func (c *APIClient) SetEndpoint(endpoint string) {
+func (c *Client) SetEndpoint(endpoint string) {
 	c.cfg.Endpoint = endpoint
 }
 
-func (c *APIClient) SetCurrentOrg(org, tenant, gateway string) {
+func (c *Client) SetCurrentOrg(org, tenant, gateway string) {
 	c.cfg.Org = org
 	c.cfg.Tenant = tenant
 	c.cfg.Gateway = gateway
 }
 
-func (c *APIClient) DoRequest(method, path string, headers http.Header, req interface{}, resp interface{}) error {
+func (c *Client) DoRequest(method, path string, headers http.Header, req interface{}, resp interface{}) error {
 	if c.cfg.Token == nil {
 		return errors.New("please use `bendsql cloud login` to login your account first")
 	}
@@ -107,7 +135,7 @@ func (c *APIClient) DoRequest(method, path string, headers http.Header, req inte
 	return c.request(method, path, headers, req, resp)
 }
 
-func (c *APIClient) request(method, path string, headers http.Header, req interface{}, resp interface{}) error {
+func (c *Client) request(method, path string, headers http.Header, req interface{}, resp interface{}) error {
 	var err error
 
 	reqBody := []byte{}
@@ -160,7 +188,7 @@ func (c *APIClient) request(method, path string, headers http.Header, req interf
 	return nil
 }
 
-func (c *APIClient) makeURL(path string) (string, error) {
+func (c *Client) makeURL(path string) (string, error) {
 	apiEndpoint := os.Getenv("BENDSQL_API_ENDPOINT")
 	if apiEndpoint == "" {
 		apiEndpoint = c.cfg.Endpoint
@@ -176,7 +204,7 @@ func (c *APIClient) makeURL(path string) (string, error) {
 	return u.String(), nil
 }
 
-func (c *APIClient) GetCloudDSN() (dsn string, err error) {
+func (c *Client) GetCloudDSN() (dsn string, err error) {
 	if c.cfg.Token == nil {
 		return "", errors.New("please use `bendsql cloud login` to login your account first")
 	}

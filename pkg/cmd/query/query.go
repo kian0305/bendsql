@@ -23,18 +23,17 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/databendcloud/bendsql/api"
-	"github.com/databendcloud/bendsql/pkg/cmdutil"
-	"github.com/databendcloud/bendsql/pkg/iostreams"
+	_ "github.com/databendcloud/databend-go"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	_ "github.com/databendcloud/databend-go"
+	"github.com/databendcloud/bendsql/api"
+	"github.com/databendcloud/bendsql/pkg/cmdutil"
+	"github.com/databendcloud/bendsql/pkg/iostreams"
 )
 
 type querySQLOptions struct {
 	IO        *iostreams.IOStreams
-	ApiClient func() (*api.APIClient, error)
 	Warehouse string
 	QuerySQL  string
 	Verbose   bool
@@ -42,8 +41,7 @@ type querySQLOptions struct {
 
 func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 	opts := &querySQLOptions{
-		IO:        f.IOStreams,
-		ApiClient: f.ApiClient,
+		IO: f.IOStreams,
 	}
 	var sqlStdin bool
 
@@ -80,7 +78,7 @@ func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
 				opts.QuerySQL = strings.TrimSpace(string(sql))
 			}
 
-			apiClient, err := opts.ApiClient()
+			apiClient, err := api.NewClient()
 			if err != nil {
 				return errors.Wrap(err, "failed to get api client")
 			}
