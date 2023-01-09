@@ -24,6 +24,8 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	_ "github.com/databendcloud/databend-go"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
@@ -149,18 +151,25 @@ func scanValues(rows *sql.Rows) ([][]interface{}, error) {
 		result = append(result, values)
 	}
 
-	var schemaStr string
-	for i := range ct {
-		schemaStr += fmt.Sprintf("| %v(%s) ", ct[i].Name(), types[i])
-	}
-	fmt.Println(schemaStr + " |")
-	for i := range result {
-		var a string
-		for j := range result[i] {
-			a += fmt.Sprintf("| %v ", result[i][j])
-		}
-		a += "| \n"
-		fmt.Println(a)
-	}
+	beautyPrintRows(result, ct)
 	return result, nil
+}
+
+func beautyPrintRows(rows [][]interface{}, columnTypes []*sql.ColumnType) {
+	columnNames := table.Row{}
+	for i := range columnTypes {
+		columnNames = append(columnNames, columnTypes[i].Name())
+	}
+	tableRows := make([]table.Row, 0, len(rows))
+	for i := range rows {
+		tableRows = append(tableRows, rows[i])
+	}
+
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.AppendHeader(columnNames)
+	t.AppendRows(tableRows)
+	t.AppendSeparator()
+	t.Style().Color.Header = text.Colors{text.FgGreen}
+	t.Render()
 }
