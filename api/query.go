@@ -24,15 +24,15 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (c *Client) Query(warehouseName, query string) (*QueryResponse, error) {
+func (c *Client) Query(warehouseName, query string) (*dc.QueryResponse, error) {
 	headers := make(http.Header)
 	headers.Set("X-DATABENDCLOUD-WAREHOUSE", warehouseName)
 	headers.Set("X-DATABENDCLOUD-ORG", string(c.cfg.Org))
-	request := QueryRequest{
+	request := dc.QueryRequest{
 		SQL: query,
 	}
 	path := "/v1/query"
-	var result QueryResponse
+	var result dc.QueryResponse
 	err := c.DoRequest("POST", path, headers, request, &result)
 	if err != nil {
 		return nil, err
@@ -43,8 +43,8 @@ func (c *Client) Query(warehouseName, query string) (*QueryResponse, error) {
 	return &result, nil
 }
 
-func (c *Client) QuerySync(warehouseName string, sql string, respCh chan QueryResponse) error {
-	var r0 *QueryResponse
+func (c *Client) QuerySync(warehouseName string, sql string, respCh chan dc.QueryResponse) error {
+	var r0 *dc.QueryResponse
 	err := retry.Do(
 		func() error {
 			r, err := c.Query(warehouseName, sql)
@@ -89,12 +89,12 @@ func (c *Client) QuerySync(warehouseName string, sql string, respCh chan QueryRe
 	return nil
 }
 
-func (c *Client) QueryPage(warehouseName, queryId, path string) (*QueryResponse, error) {
+func (c *Client) QueryPage(warehouseName, queryId, path string) (*dc.QueryResponse, error) {
 	headers := make(http.Header)
 	headers.Set("queryID", queryId)
 	headers.Set("X-DATABENDCLOUD-WAREHOUSE", warehouseName)
 	headers.Set("X-DATABENDCLOUD-ORG", string(c.cfg.Org))
-	var result QueryResponse
+	var result dc.QueryResponse
 	err := retry.Do(
 		func() error {
 			err := c.DoRequest("GET", path, headers, nil, &result)
@@ -110,35 +110,4 @@ func (c *Client) QueryPage(warehouseName, queryId, path string) (*QueryResponse,
 		return nil, err
 	}
 	return &result, nil
-}
-
-type QueryResponse struct {
-	Data     [][]interface{} `json:"data"`
-	Error    *dc.QueryError  `json:"error"`
-	FinalURI string          `json:"final_uri"`
-	Id       string          `json:"id"`
-	NextURI  string          `json:"next_uri"`
-	Schema   struct {
-		Fields []struct {
-			Name     string      `json:"name"`
-			DataType interface{} `json:"data_type"`
-		} `json:"fields"`
-	} `json:"schema,omitempty"`
-	State    string     `json:"state"`
-	Stats    QueryStats `json:"stats"`
-	StatsURI string     `json:"stats_uri"`
-}
-
-type QueryStats struct {
-	RunningTimeMS float64       `json:"running_time_ms"`
-	ScanProgress  QueryProgress `json:"scan_progress"`
-}
-
-type QueryProgress struct {
-	Bytes uint64 `json:"bytes"`
-	Rows  uint64 `json:"rows"`
-}
-
-type QueryRequest struct {
-	SQL string `json:"sql"`
 }

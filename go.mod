@@ -10,8 +10,9 @@ require (
 	github.com/briandowns/spinner v1.18.1
 	github.com/cli/cli/v2 v2.15.0
 	github.com/cli/safeexec v1.0.0
-	github.com/databendcloud/databend-go v0.2.2
+	github.com/databendcloud/databend-go v0.3.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
+	github.com/jedib0t/go-pretty/v6 v6.4.3
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-isatty v0.0.16
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
@@ -38,14 +39,12 @@ require (
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jeandeaual/go-locale v0.0.0-20220711133428-7de61946b173 // indirect
-	github.com/jedib0t/go-pretty/v6 v6.4.3 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
-	github.com/rodaine/table v1.1.0 // indirect
 	github.com/xo/dburl v0.13.0 // indirect
 	github.com/xo/tblfmt v0.10.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
