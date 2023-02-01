@@ -10,12 +10,13 @@ require (
 	github.com/briandowns/spinner v1.18.1
 	github.com/cli/cli/v2 v2.15.0
 	github.com/cli/safeexec v1.0.0
-	github.com/databendcloud/databend-go v0.3.1
+	github.com/databendcloud/databend-go v0.3.2
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/jedib0t/go-pretty/v6 v6.4.3
 	github.com/mattn/go-colorable v0.1.13
 	github.com/mattn/go-isatty v0.0.17
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d
+	github.com/montanaflynn/stats v0.7.0
 	github.com/muesli/reflow v0.3.0
 	github.com/muesli/termenv v0.12.0
 	github.com/pkg/errors v0.9.1
@@ -27,6 +28,8 @@ require (
 	golang.org/x/sys v0.4.0
 	golang.org/x/term v0.4.0
 	golang.org/x/text v0.6.0
+	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -52,5 +55,4 @@ require (
 	github.com/xo/tblfmt v0.10.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
