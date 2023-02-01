@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package perf
+package benchmark
 
 import (
 	"context"
@@ -34,7 +34,7 @@ import (
 	"github.com/databendcloud/bendsql/pkg/cmdutil"
 )
 
-type perfOptions struct {
+type benchmarkOptions struct {
 	WarmCount    int
 	TestCount    int
 	TestDir      string
@@ -43,17 +43,17 @@ type perfOptions struct {
 	Tags         []string
 }
 
-func NewCmdPerf(f *cmdutil.Factory) *cobra.Command {
-	opts := &perfOptions{}
+func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
+	opts := &benchmarkOptions{}
 
 	cmd := &cobra.Command{
-		Use:   "perf",
-		Short: "Run performance test",
-		Long:  "Run performance test",
+		Use:   "benchmark",
+		Short: "Run benchmark test",
+		Long:  "Run benchmark test",
 		Example: heredoc.Doc(`
-			# run performance test
+			# run benchmark test
 
-			$ bendsql perf
+			$ bendsql benchmark
 		`),
 		Annotations: map[string]string{
 			"IsCore": "true",
@@ -73,7 +73,7 @@ func NewCmdPerf(f *cmdutil.Factory) *cobra.Command {
 			}
 			cli := dc.NewAPIClientFromConfig(dcConfig)
 
-			fmt.Printf("Running perf with options: %+v\n", opts)
+			fmt.Printf("Running benchmark with options: %+v\n", opts)
 			targets, err := ReadTargetFiles(opts.TestDir)
 			if err != nil {
 				return errors.Wrap(err, "ReadTargetFiles")
@@ -111,20 +111,20 @@ func runQuery(ctx context.Context, cli *dc.APIClient, query string) (*dc.QuerySt
 	for len(nextURI) != 0 {
 		p, err := cli.QueryPage(nextURI)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrap(err, "QueryPage")
 		}
 		if p.Error != nil {
 			return nil, fmt.Errorf("query has error: %s", p.Error)
 		}
 		nextURI = p.NextURI
-		if p.Stats != (dc.QueryStats{}) {
+		if p.Stats.RunningTimeMS > 0 {
 			s = p.Stats
 		}
 	}
 	return &s, err
 }
 
-func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *perfOptions) error {
+func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *benchmarkOptions) error {
 	ctx := context.Background()
 
 	output := &OutputFile{}
@@ -133,7 +133,7 @@ func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *perfOptions) err
 	output.Schema = make([]OutputSchema, 0)
 
 	for _, i := range target.Statements {
-		fmt.Printf("start to run query %s : %s\n", i.Name, i.Query)
+		fmt.Printf("\nstart to run query %s : %s\n", i.Name, i.Query)
 
 		o := OutputSchema{}
 		o.Error = make([]string, 0)
@@ -148,26 +148,25 @@ func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *perfOptions) err
 		for j := 0; j < opts.WarmCount; j++ {
 			_, _ = runQuery(ctx, cli, realQuery)
 		}
-		fmt.Printf("finish warm up %d for query %s : %s", opts.WarmCount, i.Name, i.Query)
+		fmt.Printf("%s finished warm up %d times: %s\n", i.Name, opts.WarmCount, i.Query)
 
 		testOK := false
 		for j := 0; j < opts.TestCount; j++ {
-			fmt.Printf("the %d time to run query %s : %s\n", j, i.Name, i.Query)
+			fmt.Printf("%s[%d] running...\n", i.Name, j)
 
-			s, err := runQuery(ctx, cli, realQuery)
-			if err != nil {
-				fmt.Printf("the %d time result has error %s, stats: %+v\n", j, err.Error(), s)
+			if s, err := runQuery(ctx, cli, realQuery); err != nil {
+				fmt.Printf("%s[%d] result has error %s, stats: %+v\n", i.Name, j, err.Error(), s)
 				o.Error = append(o.Error, err.Error())
 			} else {
 				testOK = true
-				fmt.Printf("the %d time result in raw: %+v", j, s)
+				fmt.Printf("%s[%d] result in raw: %+v\n", i.Name, j, s)
 				o.ReadRow = s.ScanProgress.Rows
 				o.ReadByte = s.ScanProgress.Bytes
 				ms := s.RunningTimeMS
 				t := float64(time.Duration(ms)*time.Millisecond) / float64(time.Second)
 				o.Time = append(o.Time, t)
 			}
-			if len(o.Time) != 0 {
+			if len(o.Time) > 0 {
 				o.Min, _ = stats.Min(o.Time)
 				o.Max, _ = stats.Max(o.Time)
 				o.Median, _ = stats.Median(o.Time)
@@ -176,14 +175,14 @@ func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *perfOptions) err
 			}
 		}
 		if !testOK {
-			return errors.Wrapf(err, "test case failed %d times", opts.TestCount)
+			return errors.Wrapf(err, "%s failed %d times", i.Name, opts.TestCount)
 		}
 		output.Schema = append(output.Schema, o)
 	}
 	return generateOutput(opts, output)
 }
 
-func generateOutput(opts *perfOptions, output *OutputFile) error {
+func generateOutput(opts *benchmarkOptions, output *OutputFile) error {
 	switch opts.OutputFormat {
 	case "json":
 		b, err := json.Marshal(output)

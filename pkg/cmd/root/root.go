@@ -18,10 +18,10 @@ import (
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 
+	benchmarkCmd "github.com/databendcloud/bendsql/pkg/cmd/benchmark"
 	cloudCmd "github.com/databendcloud/bendsql/pkg/cmd/cloud"
 	completionCmd "github.com/databendcloud/bendsql/pkg/cmd/completion"
 	connectCmd "github.com/databendcloud/bendsql/pkg/cmd/connect"
-	perfCmd "github.com/databendcloud/bendsql/pkg/cmd/perf"
 	queryCmd "github.com/databendcloud/bendsql/pkg/cmd/query"
 	shellCmd "github.com/databendcloud/bendsql/pkg/cmd/shell"
 	versionCmd "github.com/databendcloud/bendsql/pkg/cmd/version"
@@ -68,6 +68,6 @@ func NewCmdRoot(f *cmdutil.Factory, version, buildDate string) *cobra.Command {
 	cmd.AddCommand(connectCmd.NewCmdConnect(f))
 	cmd.AddCommand(queryCmd.NewCmdQuerySQL(f))
 	cmd.AddCommand(shellCmd.NewCmdShell(f))
-	cmd.AddCommand(perfCmd.NewCmdPerf(f))
+	cmd.AddCommand(benchmarkCmd.NewCmdBenchmark(f))
 	return cmd
 }
