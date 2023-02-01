@@ -40,7 +40,8 @@ type benchmarkOptions struct {
 	TestDir      string
 	OutputFormat string
 	OutputDir    string
-	Tags         []string
+	Tag          string
+	Size         string
 }
 
 func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
@@ -48,10 +49,10 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "benchmark",
-		Short: "Run benchmark test",
-		Long:  "Run benchmark test",
+		Short: "Run benchmark",
+		Long:  "Run benchmark",
 		Example: heredoc.Doc(`
-			# run benchmark test
+			# run benchmark
 
 			$ bendsql benchmark
 		`),
@@ -81,7 +82,7 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 			for _, target := range targets {
 				err := runTarget(target, cli, opts)
 				if err != nil {
-					return errors.Wrapf(err, "runTarget(%+v)", target)
+					return err
 				}
 			}
 			return nil
@@ -93,7 +94,8 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 	cmd.Flags().StringVarP(&opts.TestDir, "test-dir", "d", "./testdata", "test directory")
 	cmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "f", "json", "output format such as json, yaml")
 	cmd.Flags().StringVarP(&opts.OutputDir, "output-dir", "o", "./target", "output directory to store tests")
-	cmd.Flags().StringSliceVarP(&opts.Tags, "tags", "t", []string{}, "tags for the test")
+	cmd.Flags().StringVarP(&opts.Tag, "tags", "t", "", "tag for the test")
+	cmd.Flags().StringVarP(&opts.Size, "size", "s", "", "size of the test")
 
 	return cmd
 }
@@ -104,31 +106,32 @@ func runQuery(ctx context.Context, cli *dc.APIClient, query string) (*dc.QuerySt
 		return nil, errors.Wrap(err, "DoQuery")
 	}
 	if r0.Error != nil {
-		return nil, errors.Wrapf(err, "DoQuery: %s", r0.Error)
+		return nil, fmt.Errorf("query has error: %s", r0.Error)
 	}
 	s := r0.Stats
 	nextURI := r0.NextURI
-	for len(nextURI) != 0 {
+	for nextURI != "" {
 		p, err := cli.QueryPage(nextURI)
 		if err != nil {
 			return nil, errors.Wrap(err, "QueryPage")
 		}
 		if p.Error != nil {
-			return nil, fmt.Errorf("query has error: %s", p.Error)
+			return nil, fmt.Errorf("query page has error: %s", p.Error)
 		}
 		nextURI = p.NextURI
 		if p.Stats.RunningTimeMS > 0 {
 			s = p.Stats
 		}
 	}
-	return &s, err
+	return &s, nil
 }
 
 func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *benchmarkOptions) error {
 	ctx := context.Background()
 
 	output := &OutputFile{}
-	// output.MetaData.Tag = cfg.WarehouseTag
+	output.MetaData.Tag = opts.Tag
+	output.MetaData.Size = opts.Size
 	output.MetaData.Table = target.MetaData.Table
 	output.Schema = make([]OutputSchema, 0)
 
@@ -141,41 +144,38 @@ func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *benchmarkOptions
 		o.Name = i.Name
 		o.SQL = i.Query
 
-		realQuery, err := RenderQueryStatment(i.Query)
-		if err != nil {
-			return errors.Wrapf(err, "RenderQueryStatment(%s)", i.Query)
-		}
 		for j := 0; j < opts.WarmCount; j++ {
-			_, _ = runQuery(ctx, cli, realQuery)
+			_, _ = runQuery(ctx, cli, i.Query)
 		}
-		fmt.Printf("%s finished warm up %d times: %s\n", i.Name, opts.WarmCount, i.Query)
+		fmt.Printf("%s finished warm up %d times\n", i.Name, opts.WarmCount)
 
 		testOK := false
 		for j := 0; j < opts.TestCount; j++ {
 			fmt.Printf("%s[%d] running...\n", i.Name, j)
 
-			if s, err := runQuery(ctx, cli, realQuery); err != nil {
-				fmt.Printf("%s[%d] result has error %s, stats: %+v\n", i.Name, j, err.Error(), s)
+			if s, err := runQuery(ctx, cli, i.Query); err != nil {
+				fmt.Printf("%s[%d] result has error: %s\n", i.Name, j, err.Error())
 				o.Error = append(o.Error, err.Error())
 			} else {
 				testOK = true
-				fmt.Printf("%s[%d] result in raw: %+v\n", i.Name, j, s)
+				fmt.Printf("%s[%d] result stats: %.2f ms, %d bytes, %d rows\n",
+					i.Name, j, s.RunningTimeMS, s.ScanProgress.Bytes, s.ScanProgress.Rows)
 				o.ReadRow = s.ScanProgress.Rows
 				o.ReadByte = s.ScanProgress.Bytes
 				ms := s.RunningTimeMS
 				t := float64(time.Duration(ms)*time.Millisecond) / float64(time.Second)
 				o.Time = append(o.Time, t)
 			}
-			if len(o.Time) > 0 {
-				o.Min, _ = stats.Min(o.Time)
-				o.Max, _ = stats.Max(o.Time)
-				o.Median, _ = stats.Median(o.Time)
-				o.Mean, _ = stats.GeometricMean(o.Time)
-				o.StdDev, _ = stats.StandardDeviation(o.Time)
-			}
+		}
+		if len(o.Time) > 0 {
+			o.Min, _ = stats.Min(o.Time)
+			o.Max, _ = stats.Max(o.Time)
+			o.Median, _ = stats.Median(o.Time)
+			o.Mean, _ = stats.GeometricMean(o.Time)
+			o.StdDev, _ = stats.StandardDeviation(o.Time)
 		}
 		if !testOK {
-			return errors.Wrapf(err, "%s failed %d times", i.Name, opts.TestCount)
+			return fmt.Errorf("test failed for %s", i.Name)
 		}
 		output.Schema = append(output.Schema, o)
 	}

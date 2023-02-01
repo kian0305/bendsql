@@ -15,8 +15,6 @@
 package benchmark
 
 import (
-	"bytes"
-	"html/template"
 	"log"
 	"os"
 	"strings"
@@ -27,24 +25,6 @@ import (
 type QueryStatement struct {
 	Name  string `json:"name"`
 	Query string `json:"query"`
-}
-
-func RenderQueryStatment(query string) (string, error) {
-	buf := bytes.NewBuffer([]byte{})
-	funcsMap := template.FuncMap{
-		"env": os.Getenv,
-	}
-	tmpl, err := template.New("tmpl").
-		Funcs(funcsMap).
-		Parse(query)
-	if err != nil {
-		return "", err
-	}
-	err = tmpl.Execute(buf, os.Environ())
-	if err != nil {
-		return "", err
-	}
-	return buf.String(), nil
 }
 
 type MetaData struct {
