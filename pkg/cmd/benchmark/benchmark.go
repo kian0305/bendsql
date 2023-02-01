@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/MakeNowJust/heredoc"
@@ -92,7 +93,7 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 	cmd.Flags().IntVarP(&opts.WarmCount, "warm", "w", 3, "warm up count for each benchmark")
 	cmd.Flags().IntVarP(&opts.TestCount, "count", "c", 10, "test count for each benchmark")
 	cmd.Flags().StringVarP(&opts.TestDir, "test-dir", "d", "./testdata", "test directory")
-	cmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "f", "json", "output format such as json, yaml")
+	cmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "f", "json", "comma separated format: json, yaml, md")
 	cmd.Flags().StringVarP(&opts.OutputDir, "output-dir", "o", "./target", "output directory to store tests")
 	cmd.Flags().StringVarP(&opts.Tag, "tags", "t", "", "tag for the test")
 	cmd.Flags().StringVarP(&opts.Size, "size", "s", "", "size of the test")
@@ -183,29 +184,41 @@ func runTarget(target *InputQueryFile, cli *dc.APIClient, opts *benchmarkOptions
 }
 
 func generateOutput(opts *benchmarkOptions, output *OutputFile) error {
-	switch opts.OutputFormat {
-	case "json":
-		b, err := json.Marshal(output)
-		if err != nil {
-			return errors.Wrap(err, "failed to marshal json")
+	for _, format := range strings.Split(opts.OutputFormat, ",") {
+		var data []byte
+		switch format {
+		case "json":
+			b, err := json.Marshal(output)
+			if err != nil {
+				return errors.Wrap(err, "failed to marshal json")
+			}
+			data = b
+		case "yaml":
+			b, err := yaml.Marshal(output)
+			if err != nil {
+				fmt.Printf("failed to marshal yaml : %+v\n", err)
+			}
+			data = b
+		case "markdown", "md":
+			text := fmt.Sprintf("## Benchmark for %s with `%s`\n\n", output.MetaData.Table, output.MetaData.Size)
+			if output.MetaData.Tag != "" {
+				text += fmt.Sprintf("tag: `%s`\n\n", output.MetaData.Tag)
+			}
+			text += "|Name|Min|Max|Median|Mean|StdDev|ReadRow|ReadByte|\n"
+			text += "|----|---|---|------|----|------|-------|--------|\n"
+			for _, o := range output.Schema {
+				text += fmt.Sprintf("|%s|%.2f|%.2f|%.2f|%.2f|%.2f|%d|%d|\n",
+					o.Name, o.Min, o.Max, o.Median, o.Mean, o.StdDev, o.ReadRow, o.ReadByte)
+			}
+			data = []byte(text)
+		default:
+			return errors.Errorf("unsupported output type %s", format)
 		}
-		outFile := filepath.Join(opts.OutputDir, output.MetaData.Table+".json")
-		err = os.WriteFile(outFile, b, 0644)
+		outFile := filepath.Join(opts.OutputDir, output.MetaData.Table+"."+format)
+		err := os.WriteFile(outFile, data, 0644)
 		if err != nil {
 			return errors.Wrapf(err, "cannot write %s", outFile)
 		}
-	case "yaml":
-		b, err := yaml.Marshal(output)
-		if err != nil {
-			fmt.Printf("failed to marshal yaml : %+v\n", err)
-		}
-		outFile := filepath.Join(opts.OutputDir, output.MetaData.Table+".yaml")
-		err = os.WriteFile(outFile, b, 0644)
-		if err != nil {
-			return errors.Wrapf(err, "cannot write %s", outFile)
-		}
-	default:
-		return errors.Errorf("unsupported output type %s", opts.OutputFormat)
 	}
 	return nil
 }
