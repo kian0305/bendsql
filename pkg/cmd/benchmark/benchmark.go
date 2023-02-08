@@ -43,6 +43,8 @@ type benchmarkOptions struct {
 	OutputDir    string
 	Tag          string
 	Size         string
+
+	ConnOpts config.RuntimeOptions
 }
 
 func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
@@ -65,7 +67,7 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 			if err != nil {
 				return errors.Wrap(err, "failed to get config")
 			}
-			dsn, err := cfg.GetDSN()
+			dsn, err := cfg.GetDSN(opts.ConnOpts)
 			if err != nil {
 				return errors.Wrap(err, "failed to get dsn")
 			}
@@ -92,11 +94,15 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 
 	cmd.Flags().IntVarP(&opts.WarmCount, "warm", "w", 3, "warm up count for each benchmark")
 	cmd.Flags().IntVarP(&opts.TestCount, "count", "c", 10, "test count for each benchmark")
-	cmd.Flags().StringVarP(&opts.TestDir, "test-dir", "d", "./testdata", "test directory")
+	cmd.Flags().StringVarP(&opts.TestDir, "test-dir", "t", "./testdata", "test directory")
 	cmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "f", "json", "comma separated format: json, yaml, md")
 	cmd.Flags().StringVarP(&opts.OutputDir, "output-dir", "o", "./target", "output directory to store tests")
-	cmd.Flags().StringVarP(&opts.Tag, "tags", "t", "", "tag for the test")
-	cmd.Flags().StringVarP(&opts.Size, "size", "s", "", "size of the test")
+	cmd.Flags().StringVarP(&opts.Tag, "tags", "", "", "tag for the test")
+	cmd.Flags().StringVarP(&opts.Size, "size", "", "", "size of the test")
+
+	cmd.Flags().StringVarP(&opts.ConnOpts.Username, "username", "u", "", "Optional username")
+	cmd.Flags().StringVarP(&opts.ConnOpts.Password, "password", "p", "", "Optional password")
+	cmd.Flags().StringVarP(&opts.ConnOpts.Database, "database", "d", "", "Optional database")
 
 	return cmd
 }
@@ -207,7 +213,7 @@ func generateOutput(opts *benchmarkOptions, output *OutputFile) error {
 			text += "|Name|Min|Max|Median|Mean|StdDev|ReadRow|ReadByte|\n"
 			text += "|----|---|---|------|----|------|-------|--------|\n"
 			for _, o := range output.Schema {
-				text += fmt.Sprintf("|%s|%.2f|%.2f|%.2f|%.2f|%.2f|%d|%d|\n",
+				text += fmt.Sprintf("|%s|%.2f ms|%.2f ms|%.2f ms|%.2f ms|%.2f ms|%d|%d|\n",
 					o.Name, o.Min, o.Max, o.Median, o.Mean, o.StdDev, o.ReadRow, o.ReadByte)
 			}
 			data = []byte(text)

@@ -67,18 +67,18 @@ type Config struct {
 	Community *CommunityConfig `toml:"community,omitempty"`
 }
 
-func (c *Config) GetDSN() (string, error) {
+func (c *Config) GetDSN(opts RuntimeOptions) (string, error) {
 	switch c.Target {
 	case TARGET_COMMUNITY:
 		if c.Community == nil {
 			return "", errors.New("please use `bendsql connect` to connect to your instance first")
 		}
-		return c.Community.GetDSN()
+		return c.Community.GetDSN(opts)
 	case TARGET_CLOUD:
 		if c.Cloud == nil {
 			return "", errors.New("please use `bendsql cloud login` to connect to your account first")
 		}
-		return c.Cloud.GetDSN()
+		return c.Cloud.GetDSN(opts)
 	default:
 		return "", errors.New("please use `bendsql connect` or `bendsql cloud login` to connect to your instance first")
 	}
@@ -95,12 +95,25 @@ type CommunityConfig struct {
 	Options map[string]string `toml:"options"`
 }
 
-func (c *CommunityConfig) GetDSN() (string, error) {
+func (c *CommunityConfig) GetDSN(opts RuntimeOptions) (string, error) {
 	cfg := dc.NewConfig()
 	cfg.Host = fmt.Sprintf("%s:%d", c.Host, c.Port)
-	cfg.User = c.User
-	cfg.Password = c.Password
-	cfg.Database = c.Database
+	if opts.Username != "" {
+		cfg.User = opts.Username
+	} else {
+		cfg.User = c.User
+	}
+	if opts.Password != "" {
+		cfg.Password = opts.Password
+	} else {
+		cfg.Password = c.Password
+	}
+	if opts.Database != "" {
+		cfg.Database = opts.Database
+	} else {
+		cfg.Database = c.Database
+	}
+
 	if !c.SSL {
 		cfg.SSLMode = dc.SSL_MODE_DISABLE
 	}
@@ -120,7 +133,7 @@ type CloudConfig struct {
 	Token *Token `toml:"token,omitempty"`
 }
 
-func (c *CloudConfig) GetDSN() (string, error) {
+func (c *CloudConfig) GetDSN(opts RuntimeOptions) (string, error) {
 	if c.Token == nil {
 		return "", errors.New("please use `bendsql cloud login` to login your account first")
 	}
@@ -135,6 +148,17 @@ func (c *CloudConfig) GetDSN() (string, error) {
 	cfg.Host = c.Gateway
 	cfg.Tenant = c.Tenant
 	cfg.Warehouse = c.Warehouse
+
+	if opts.Username != "" {
+		cfg.User = opts.Username
+		cfg.Password = opts.Password
+	} else {
+		cfg.AccessToken = c.Token.AccessToken
+	}
+	if opts.Database != "" {
+		cfg.Database = opts.Database
+	}
+
 	cfg.AccessToken = c.Token.AccessToken
 
 	dsn := cfg.FormatDSN()
@@ -145,6 +169,12 @@ type Token struct {
 	AccessToken  string    `toml:"access_token"`
 	RefreshToken string    `toml:"refresh_token"`
 	ExpiresAt    time.Time `toml:"expires_at"`
+}
+
+type RuntimeOptions struct {
+	Username string
+	Password string
+	Database string
 }
 
 func GetConfig() (*Config, error) {

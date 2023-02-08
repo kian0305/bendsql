@@ -33,10 +33,13 @@ import (
 
 type querySQLOptions struct {
 	NonInteractive bool
-	Format         string
-	RowsOnly       bool
-	Expanded       bool
-	LineStyle      string
+
+	Format    string
+	RowsOnly  bool
+	Expanded  bool
+	LineStyle string
+
+	ConnOpts config.RuntimeOptions
 }
 
 var (
@@ -58,7 +61,7 @@ func NewCmdQuery(f *cmdutil.Factory) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			dsn, err := cfg.GetDSN()
+			dsn, err := cfg.GetDSN(opts.ConnOpts)
 			if err != nil {
 				return errors.Wrap(err, "failed to get dsn")
 			}
@@ -122,12 +125,17 @@ func NewCmdQuery(f *cmdutil.Factory) *cobra.Command {
 		},
 	}
 	cmd.Flags().BoolVarP(&opts.NonInteractive, "non-interactive", "n", false, "Do not use interactive mode")
+
 	cmd.Flags().StringVarP(&opts.Format, "format", "f", "table",
 		"Output format, one of: "+strings.Join(outputFormats, ", "))
 	cmd.Flags().BoolVarP(&opts.RowsOnly, "rows-only", "t", false, "Output print rows only")
 	cmd.Flags().BoolVarP(&opts.Expanded, "expanded", "x", false, "Table output rurn on expanded mode")
 	cmd.Flags().StringVarP(&opts.LineStyle, "line-style", "l", "ascii",
 		"Table output line style, one of: "+strings.Join(LineStyles, ", "))
+
+	cmd.Flags().StringVarP(&opts.ConnOpts.Username, "username", "u", "", "Optional username for current connection")
+	cmd.Flags().StringVarP(&opts.ConnOpts.Password, "password", "p", "", "Optional password for current connection")
+	cmd.Flags().StringVarP(&opts.ConnOpts.Database, "database", "d", "", "Optional database for current connection")
 
 	return cmd
 }

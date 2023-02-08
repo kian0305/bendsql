@@ -59,7 +59,7 @@ func NewCmdConnect(f *cmdutil.Factory) *cobra.Command {
 				SSL:      opts.SSL,
 			}
 
-			dsn, err := cfg.Community.GetDSN()
+			dsn, err := cfg.Community.GetDSN(config.RuntimeOptions{})
 			if err != nil {
 				return err
 			}
