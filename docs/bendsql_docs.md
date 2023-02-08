@@ -1,17 +1,20 @@
-## What is `bendsql`?
+## What is bendsql?
+
 bendsql is a handy command line interface tool to work with Databend Cloud smoothly and efficiently as with a web browser. Use the tool as an alternative to manage your warehouses and run SQL queries.
 
 
-## How to install bendsql
+## Install bendsql
 
 ### brew install
+
 If you're on MacOS, install bendsql using 'brew install':
 ```shell
 brew tap databendcloud/homebrew-tap && brew install bendsql
 ```
 
 ### binary install
-Go to [release](https://github.com/databendcloud/bendsql/releases/latest) and find a binary package for your platform.
+
+Go to the [Releases](https://github.com/databendcloud/bendsql/releases/latest) page and find a binary package for your platform.
 
 ### go install
 
@@ -19,9 +22,9 @@ Go to [release](https://github.com/databendcloud/bendsql/releases/latest) and fi
 go install github.com/databendcloud/bendsql/cmd/bendsql@latest
 ```
 
-## Work with Databend Cloud
+## Connect bendsql to Databend Cloud
 
-### Sign in to Databend Cloud
+### Sign in to Your Databend Cloud Account
 
 ```shell
 bendsql cloud login
@@ -30,7 +33,7 @@ bendsql cloud login
 ![](https://tva3.sinaimg.cn/large/005UfcOkly8h78cbw42jcj30z80b0aat.jpg)
 
 If you don't have an account yet, create one in Databend Cloud.
-Signing into bendsql requires your organization's information. You can press Enter to select the default organization during the sign-in process and then change it afterwards with the command ` bendsql cloud configure --org <your_org> `.
+Signing into your Databend Cloud account in bendsql requires your organization's information. You can press Enter to select the default organization during the sign-in process and then change it afterwards with the command ` bendsql cloud configure --org <your_org> `.
 
 ### Manage Warehouses
 
@@ -53,10 +56,11 @@ LEARN MORE
 ```
 
 
-## Work with BendSQL
+## Work with bendsql
 
 ### Run SQL Queries
-You can even run SQL queries with bendsql. Specify a large warehouse for queries that need more computing resources.
+
+You can run SQL queries with bendsql. Specify a large warehouse for queries that need more computing resources.
 
 ```shell
 echo 'YOURSQL;' | bendsql query --warehouse YOURWAREHOUSAE
