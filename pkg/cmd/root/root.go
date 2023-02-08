@@ -23,7 +23,6 @@ import (
 	completionCmd "github.com/databendcloud/bendsql/pkg/cmd/completion"
 	connectCmd "github.com/databendcloud/bendsql/pkg/cmd/connect"
 	queryCmd "github.com/databendcloud/bendsql/pkg/cmd/query"
-	shellCmd "github.com/databendcloud/bendsql/pkg/cmd/shell"
 	versionCmd "github.com/databendcloud/bendsql/pkg/cmd/version"
 	"github.com/databendcloud/bendsql/pkg/cmdutil"
 )
@@ -42,7 +41,6 @@ func NewCmdRoot(f *cmdutil.Factory, version, buildDate string) *cobra.Command {
 			$ bendsql connect
 			$ bendsql cloud login
 			$ bendsql cloud warehouse ls
-			$ bendsql shell
 			$ bendsql query`),
 		Annotations: map[string]string{
 			"versionInfo": versionCmd.Format(version, buildDate),
@@ -66,8 +64,7 @@ func NewCmdRoot(f *cmdutil.Factory, version, buildDate string) *cobra.Command {
 	cmd.AddCommand(completionCmd.NewCmdCompletion(f.IOStreams))
 	cmd.AddCommand(cloudCmd.NewCloudCmd(f))
 	cmd.AddCommand(connectCmd.NewCmdConnect(f))
-	cmd.AddCommand(queryCmd.NewCmdQuerySQL(f))
-	cmd.AddCommand(shellCmd.NewCmdShell(f))
+	cmd.AddCommand(queryCmd.NewCmdQuery(f))
 	cmd.AddCommand(benchmarkCmd.NewCmdBenchmark(f))
 	return cmd
 }

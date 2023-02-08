@@ -15,161 +15,119 @@
 package query
 
 import (
-	"database/sql"
-	"fmt"
-	"io"
+	"context"
 	"os"
-	"reflect"
+	"os/user"
 	"strings"
 
-	"github.com/MakeNowJust/heredoc"
-	_ "github.com/databendcloud/databend-go"
-	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/xo/usql/drivers"
+	"github.com/xo/usql/env"
+	"github.com/xo/usql/handler"
+	"github.com/xo/usql/rline"
 
 	"github.com/databendcloud/bendsql/internal/config"
 	"github.com/databendcloud/bendsql/pkg/cmdutil"
-	"github.com/databendcloud/bendsql/pkg/iostreams"
 )
 
 type querySQLOptions struct {
-	IO       *iostreams.IOStreams
-	QuerySQL string
-	Verbose  bool
+	NonInteractive bool
+	Format         string
+	RowsOnly       bool
+	Expanded       bool
+	LineStyle      string
 }
 
-func NewCmdQuerySQL(f *cmdutil.Factory) *cobra.Command {
-	opts := &querySQLOptions{
-		IO: f.IOStreams,
-	}
-	var sqlStdin bool
+var (
+	outputFormats = []string{"table", "unaligned", "html", "json", "csv", "vertical"}
+	LineStyles    = []string{"ascii", "unicode-single", "unicode-double"}
+)
 
+func NewCmdQuery(f *cmdutil.Factory) *cobra.Command {
+	opts := &querySQLOptions{}
 	cmd := &cobra.Command{
 		Use:   "query",
-		Short: "Exec query SQL using warehouse",
-		Long:  "Exec query SQL using warehouse",
-		Example: heredoc.Doc(`
-			# exec SQL using warehouse
-			# use sql
-			$ bendsql query "YOURSQL" [--verbose]
-
-			# use stdin
-			$ echo "select * from YOURTABLE limit 10" | bendsql query
-		`),
+		Short: "Run query SQL using warehouse",
+		Long:  "Run query SQL using warehouse or use interactive mode",
 		Annotations: map[string]string{
 			"IsCore": "true",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if len(args) == 1 {
-				opts.QuerySQL = args[0]
-			}
-
-			if len(opts.QuerySQL) == 0 {
-				sqlStdin = true
-			}
-			if sqlStdin {
-				defer opts.IO.In.Close()
-				sql, err := io.ReadAll(opts.IO.In)
-				if err != nil {
-					fmt.Printf("failed to read sql from standard input: %v", err)
-					os.Exit(1)
-				}
-				opts.QuerySQL = strings.TrimSpace(string(sql))
-			}
-
 			cfg, err := config.GetConfig()
 			if err != nil {
-				return errors.Wrap(err, "failed to get config")
+				return err
 			}
-
 			dsn, err := cfg.GetDSN()
 			if err != nil {
 				return errors.Wrap(err, "failed to get dsn")
 			}
 
-			err = execQueryByDriver(opts, dsn)
+			// register databend driver
+			drivers.Register("databend", drivers.Driver{
+				UseColumnTypes: true,
+			})
+
+			// load current user
+			cur, err := user.Current()
 			if err != nil {
-				fmt.Printf("exec query failed, err: %v\n", err)
-				os.Exit(1)
+				return errors.Wrap(err, "failed to get current user")
 			}
-			return nil
+			wd, err := os.Getwd()
+			if err != nil {
+				return errors.Wrap(err, "failed to get current working directory")
+			}
+
+			// create input/output
+			l, err := rline.New(opts.NonInteractive, "", env.HistoryFile(cur))
+			if err != nil {
+				return errors.Wrap(err, "failed to create readline")
+			}
+			defer l.Close()
+
+			if !l.Interactive() {
+				env.Set("QUIET", "on")
+				env.Pset("format", opts.Format)
+			}
+			if opts.RowsOnly {
+				env.Pset("tuples_only", "on")
+				env.Pset("border", "0")
+			} else {
+				env.Pset("border", "2")
+			}
+			if opts.Expanded {
+				env.Pset("expanded", "on")
+			}
+			switch opts.LineStyle {
+			case "ascii":
+				env.Pset("linestyle", "ascii")
+			case "unicode", "unicode-single":
+				env.Pset("linestyle", "unicode")
+				env.Pset("border", "2")
+			case "unicode-double":
+				env.Pset("linestyle", "unicode")
+				env.Pset("unicode_border_linestyle", "double")
+				env.Pset("border", "2")
+			default:
+				return errors.Errorf("invalid line style: %q", opts.LineStyle)
+			}
+
+			// create handler
+			h := handler.New(l, cur, wd, true)
+			// open dsn
+			if err = h.Open(context.Background(), dsn); err != nil {
+				return errors.Wrap(err, "failed to open dsn")
+			}
+			return h.Run()
 		},
 	}
-
-	cmd.Flags().BoolVar(&opts.Verbose, "verbose", false, "display progress info across paginated results")
+	cmd.Flags().BoolVarP(&opts.NonInteractive, "non-interactive", "n", false, "Do not use interactive mode")
+	cmd.Flags().StringVarP(&opts.Format, "format", "f", "table",
+		"Output format, one of: "+strings.Join(outputFormats, ", "))
+	cmd.Flags().BoolVarP(&opts.RowsOnly, "rows-only", "t", false, "Output print rows only")
+	cmd.Flags().BoolVarP(&opts.Expanded, "expanded", "x", false, "Table output rurn on expanded mode")
+	cmd.Flags().StringVarP(&opts.LineStyle, "line-style", "l", "ascii",
+		"Table output line style, one of: "+strings.Join(LineStyles, ", "))
 
 	return cmd
-}
-
-func execQueryByDriver(opts *querySQLOptions, dsn string) error {
-	db, err := sql.Open("databend", dsn)
-	if err != nil {
-		return errors.Wrap(err, "failed to open databend driver")
-	}
-	defer db.Close()
-
-	rows, err := db.Query(opts.QuerySQL)
-	if err != nil {
-		return errors.Wrap(err, "failed to query")
-	}
-	_, err = scanValues(rows)
-	if err != nil {
-		return errors.Wrap(err, "failed to scan values")
-	}
-	return nil
-}
-
-func scanValues(rows *sql.Rows) ([][]interface{}, error) {
-	var err error
-	var result [][]interface{}
-	ct, err := rows.ColumnTypes()
-	if err != nil {
-		return nil, err
-	}
-	types := make([]reflect.Type, len(ct))
-	for i, v := range ct {
-		types[i] = v.ScanType()
-	}
-	ptrs := make([]interface{}, len(types))
-	for rows.Next() {
-		if err = rows.Err(); err != nil {
-			return nil, err
-		}
-		for i, t := range types {
-			ptrs[i] = reflect.New(t).Interface()
-		}
-		err = rows.Scan(ptrs...)
-		if err != nil {
-			return nil, err
-		}
-		values := make([]interface{}, len(types))
-		for i, p := range ptrs {
-			values[i] = reflect.ValueOf(p).Elem().Interface()
-		}
-		result = append(result, values)
-	}
-
-	beautyPrintRows(result, ct)
-	return result, nil
-}
-
-func beautyPrintRows(rows [][]interface{}, columnTypes []*sql.ColumnType) {
-	columnNames := table.Row{}
-	for i := range columnTypes {
-		columnNames = append(columnNames, columnTypes[i].Name())
-	}
-	tableRows := make([]table.Row, 0, len(rows))
-	for i := range rows {
-		tableRows = append(tableRows, rows[i])
-	}
-
-	t := table.NewWriter()
-	t.SetOutputMirror(os.Stdout)
-	t.AppendHeader(columnNames)
-	t.AppendRows(tableRows)
-	t.AppendSeparator()
-	t.Style().Color.Header = text.Colors{text.FgGreen}
-	t.Render()
 }

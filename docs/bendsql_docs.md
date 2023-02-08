@@ -59,7 +59,7 @@ LEARN MORE
 You can even run SQL queries with bendsql. Specify a large warehouse for queries that need more computing resources.
 
 ```shell
-bendsql query YOURSQL --warehouse YOURWAREHOUSAE
+echo 'YOURSQL;' | bendsql query --warehouse YOURWAREHOUSAE
 ```
 
 ### Run Interactive Shell
@@ -67,9 +67,8 @@ bendsql query YOURSQL --warehouse YOURWAREHOUSAE
 You can get an interractive database shell powered by [usql](https://github.com/xo/usql) with bendsql.
 
 ```shell
-bendsql shell
+bendsql query
 ```
-
 
 ### Do More with bendsql
 
