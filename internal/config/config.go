@@ -32,8 +32,8 @@ const (
 )
 
 var (
-	configFile = ""
-	tokenFile  = ""
+	configFile     = ""
+	cloudTokenFile = ""
 )
 
 func init() {
@@ -47,14 +47,14 @@ func init() {
 		configFile = filepath.Join(d, ".config", "bendsql", "config.toml")
 	}
 
-	if t := os.Getenv("BENDSQL_TOKEN"); t != "" {
-		tokenFile = t
+	if t := os.Getenv("BENDSQL_CLOUD_TOKEN"); t != "" {
+		cloudTokenFile = t
 	} else {
 		d, err := os.UserHomeDir()
 		if err != nil {
 			panic(err)
 		}
-		tokenFile = filepath.Join(d, ".config", "bendsql", "token")
+		cloudTokenFile = filepath.Join(d, ".config", "bendsql", "cloud-token")
 	}
 
 	if !exists(configFile) {
@@ -77,6 +77,19 @@ type Config struct {
 	Target    string           `toml:"target"`
 	Cloud     *CloudConfig     `toml:"cloud,omitempty"`
 	Community *CommunityConfig `toml:"community,omitempty"`
+}
+
+func (c *Config) Clone() Config {
+	cfg := Config{
+		Target: c.Target,
+	}
+	if c.Cloud != nil {
+		cfg.Cloud = c.Cloud.Clone()
+	}
+	if c.Community != nil {
+		cfg.Community = c.Community.Clone()
+	}
+	return cfg
 }
 
 func (c *Config) GetDSN(opts RuntimeOptions) (string, error) {
@@ -105,6 +118,15 @@ type CommunityConfig struct {
 	SSL      bool   `toml:"ssl"`
 
 	Options map[string]string `toml:"options"`
+}
+
+func (c *CommunityConfig) Clone() *CommunityConfig {
+	cfg := *c
+	cfg.Options = map[string]string{}
+	for k, v := range c.Options {
+		cfg.Options[k] = v
+	}
+	return &cfg
 }
 
 func (c *CommunityConfig) GetDSN(opts RuntimeOptions) (string, error) {
@@ -142,7 +164,16 @@ type CloudConfig struct {
 	Gateway   string `toml:"gateway"`
 	Endpoint  string `toml:"endpoint"`
 
-	Token *Token `toml:"token,omitempty"`
+	Token *CloudToken `toml:"token,omitempty"`
+}
+
+func (c *CloudConfig) Clone() *CloudConfig {
+	cfg := *c
+	if c.Token != nil {
+		t := *c.Token
+		cfg.Token = &t
+	}
+	return &cfg
 }
 
 func (c *CloudConfig) GetDSN(opts RuntimeOptions) (string, error) {
@@ -177,7 +208,7 @@ func (c *CloudConfig) GetDSN(opts RuntimeOptions) (string, error) {
 	return dsn, nil
 }
 
-type Token struct {
+type CloudToken struct {
 	AccessToken  string    `toml:"access_token"`
 	RefreshToken string    `toml:"refresh_token"`
 	ExpiresAt    time.Time `toml:"expires_at"`
@@ -194,15 +225,48 @@ func LoadConfig() (*Config, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "read config file")
 	}
+
 	var cfg Config
 	_, err = toml.Decode(string(content), &cfg)
 	if err != nil {
 		return nil, errors.Wrap(err, "unmarshal config file")
 	}
+
+	// if target is cloud, try load the auth token
+	var cloudToken CloudToken
+	if exists(cloudTokenFile) {
+		_, err = toml.DecodeFile(cloudTokenFile, &cloudToken)
+		if err != nil {
+			return nil, errors.Wrap(err, "unmarshal auth token file")
+		}
+
+		cfg.Cloud.Token = &cloudToken
+	}
 	return &cfg, nil
 }
 
-func FlushConfig(cfg *Config) error {
+func FlushCloudToken(token *CloudToken) error {
+	file, err := os.OpenFile(cloudTokenFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return errors.Wrapf(err, "open cloud token file: %s", cloudTokenFile)
+	}
+	err = toml.NewEncoder(file).Encode(token)
+	if err != nil {
+		return errors.Wrapf(err, "encode cloud token file: %s", cloudTokenFile)
+	}
+	return nil
+}
+
+func FlushConfig(config *Config) error {
+	cfg := config.Clone()
+
+	// save the cloud token file seperately
+	if cfg.Cloud != nil && cfg.Cloud.Token != nil {
+		FlushCloudToken(cfg.Cloud.Token)
+		// do not save the cloud token in the config file
+		cfg.Cloud.Token = nil
+	}
+
 	file, err := os.OpenFile(configFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return errors.Wrap(err, "open config file")

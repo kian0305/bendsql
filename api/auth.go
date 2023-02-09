@@ -57,7 +57,7 @@ func (c *Client) Login(email, password string) error {
 	} else if err != nil {
 		return errors.Wrap(err, "failed to login")
 	}
-	token := &config.Token{
+	token := &config.CloudToken{
 		AccessToken:  resp.Data.AccessToken,
 		RefreshToken: resp.Data.RefreshToken,
 		ExpiresAt:    resp.Data.ExpiresAt,
@@ -86,7 +86,7 @@ func (c *Client) RefreshToken() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to refresh tokens")
 	}
-	token := &config.Token{
+	token := &config.CloudToken{
 		AccessToken:  resp.Data.AccessToken,
 		RefreshToken: resp.Data.RefreshToken,
 		ExpiresAt:    resp.Data.ExpiresAt,
