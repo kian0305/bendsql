@@ -46,7 +46,7 @@ const (
 )
 
 func NewClient() (*Client, error) {
-	cfg, err := config.GetConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get config")
 	}
@@ -64,13 +64,13 @@ func NewClient() (*Client, error) {
 }
 
 func (c *Client) WriteConfig() error {
-	cfg, err := config.GetConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		return errors.Wrap(err, "failed to get config")
 	}
 	cfg.Target = config.TARGET_CLOUD
 	cfg.Cloud = c.cfg
-	return config.WriteConfig(cfg)
+	return config.FlushConfig(cfg)
 }
 
 func (c *Client) CurrentWarehouse() string {

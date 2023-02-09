@@ -33,6 +33,7 @@ const (
 
 var (
 	configFile = ""
+	tokenFile  = ""
 )
 
 func init() {
@@ -45,6 +46,17 @@ func init() {
 		}
 		configFile = filepath.Join(d, ".config", "bendsql", "config.toml")
 	}
+
+	if t := os.Getenv("BENDSQL_TOKEN"); t != "" {
+		tokenFile = t
+	} else {
+		d, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+		tokenFile = filepath.Join(d, ".config", "bendsql", "token")
+	}
+
 	if !exists(configFile) {
 		fmt.Printf("config file %s not found, creating a new one\n", configFile)
 		if !exists(filepath.Dir(configFile)) {
@@ -177,7 +189,7 @@ type RuntimeOptions struct {
 	Database string
 }
 
-func GetConfig() (*Config, error) {
+func LoadConfig() (*Config, error) {
 	content, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, errors.Wrap(err, "read config file")
@@ -190,7 +202,7 @@ func GetConfig() (*Config, error) {
 	return &cfg, nil
 }
 
-func WriteConfig(cfg *Config) error {
+func FlushConfig(cfg *Config) error {
 	file, err := os.OpenFile(configFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return errors.Wrap(err, "open config file")

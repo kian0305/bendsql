@@ -63,7 +63,7 @@ func NewCmdBenchmark(f *cmdutil.Factory) *cobra.Command {
 			"IsCore": "true",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cfg, err := config.GetConfig()
+			cfg, err := config.LoadConfig()
 			if err != nil {
 				return errors.Wrap(err, "failed to get config")
 			}
