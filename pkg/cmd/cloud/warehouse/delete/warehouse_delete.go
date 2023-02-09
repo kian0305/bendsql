@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/databendcloud/bendsql/api"
@@ -25,30 +26,27 @@ import (
 )
 
 func NewCmdWarehouseDelete(f *cmdutil.Factory) *cobra.Command {
-
 	cmd := &cobra.Command{
-		Use:   "delete warehouseName",
+		Use:   "delete",
 		Short: "Delete a warehouse",
 		Long:  "Delete a warehouse",
 		Example: heredoc.Doc(`
 			# delete a warehouse
-			$ bendsql warehouse delete WAREHOUSENAME
+			$ bendsql cloud warehouse delete [WAREHOUSE]
 		`),
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if len(args) > 1 {
-				fmt.Printf("Wrong params, example: bendsql warehouse delete WAREHOUSENAME \n")
-				return
+				return errors.New("wrong params")
 			}
 			if len(args) == 0 {
-				fmt.Printf("No warehouseName, example: bendsql warehouse delete WAREHOUSENAME \n")
-				return
+				return errors.New("warehouse name is required")
 			}
 			err := deleteWarehouse(f, args[0])
 			if err != nil {
-				fmt.Printf("delete warehouse %s failed, err: %v", args[0], err)
-				return
+				return errors.Errorf("Delete warehouse %s failed, err: %v", args[0], err)
 			}
-			fmt.Printf("warehouse %s deleted", args[0])
+			fmt.Printf("Warehouse %s deleted.\n", args[0])
+			return nil
 		},
 	}
 	return cmd

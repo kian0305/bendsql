@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/MakeNowJust/heredoc"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
 	"github.com/databendcloud/bendsql/api"
@@ -31,31 +32,23 @@ func NewCmdWarehouseList(f *cmdutil.Factory) *cobra.Command {
 		Long:  "show warehouse list",
 		Example: heredoc.Doc(`
 			# show warehouse list
-			$ bendsql warehouse ls
+			$ bendsql cloud warehouse ls
 		`),
-		Run: func(cmd *cobra.Command, args []string) {
-			err := showWarehouseList(f)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			apiClient, err := api.NewClient()
 			if err != nil {
-				fmt.Printf("show warehouse list failed, err: %v", err)
+				return errors.Wrap(err, "get api client failed")
 			}
+			warehouseList, err := apiClient.ListWarehouses()
+			if err != nil {
+				return errors.Wrap(err, "list warehouses failed")
+			}
+			for _, warehouse := range warehouseList {
+				fmt.Println(warehouse.Description(), warehouse.Name)
+			}
+			return nil
 		},
 	}
 
 	return cmd
-}
-
-func showWarehouseList(f *cmdutil.Factory) error {
-	apiClient, err := api.NewClient()
-	if err != nil {
-		return err
-	}
-	warehouseList, err := apiClient.ListWarehouses()
-	if err != nil {
-		return err
-	}
-	for _, warehouse := range warehouseList {
-		fmt.Println(warehouse.Description(), warehouse.Name)
-	}
-
-	return nil
 }

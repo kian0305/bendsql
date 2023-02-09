@@ -28,18 +28,22 @@ import (
 )
 
 func NewCmdWarehouseResume(f *cmdutil.Factory) *cobra.Command {
-	var wait bool
+	var (
+		wait    bool
+		timeout time.Duration
+	)
+
 	cmd := &cobra.Command{
-		Use:   "resume warehouseName --wait",
+		Use:   "resume",
 		Short: "Resume a warehouse",
 		Long:  "Resume a warehouse",
 		Args:  cobra.MaximumNArgs(1),
 		Example: heredoc.Doc(`
 			# resume a warehouse and return until the warehouse running
-			$ bendsql warehouse resume WAREHOUSENAME --wait
+			$ bendsql cloud warehouse resume [WAREHOUSE] --wait
 
 			# resume a warehouse and return
-			$ bendsql warehouse resume WAREHOUSENAME
+			$ bendsql cloud warehouse resume [WAREHOUSE]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			apiClient, err := api.NewClient()
@@ -53,20 +57,21 @@ func NewCmdWarehouseResume(f *cmdutil.Factory) *cobra.Command {
 			case 1:
 				warehouse = args[0]
 			default:
-				return errors.New("wrong params, example: bendsql warehouse resume WAREHOUSENAME")
+				return errors.New("wrong params")
 			}
-			err = resumeWarehouse(apiClient, warehouse, wait)
+			err = resumeWarehouse(apiClient, warehouse, wait, timeout)
 			if err != nil {
 				return errors.Wrapf(err, "resume warehouse %s failed", warehouse)
 			}
 			return nil
 		},
 	}
-	cmd.Flags().BoolVar(&wait, "wait", false, "Wait until resume warehouse success")
+	cmd.Flags().BoolVarP(&wait, "wait", "w", false, "Wait until resume warehouse success")
+	cmd.Flags().DurationVarP(&timeout, "timeout", "t", 2*time.Minute, "Timeout for resume warehouse")
 	return cmd
 }
 
-func resumeWarehouse(apiClient *api.Client, warehouseName string, wait bool) error {
+func resumeWarehouse(apiClient *api.Client, warehouseName string, wait bool, timeout time.Duration) error {
 	err := apiClient.ResumeWarehouse(warehouseName)
 	if err != nil {
 		return errors.Wrap(err, "resume warehouse failed")
@@ -82,16 +87,16 @@ func resumeWarehouse(apiClient *api.Client, warehouseName string, wait bool) err
 				if status.State != "Running" {
 					return fmt.Errorf("resume warehouse %s timeout, state is %s", warehouseName, status.State)
 				}
-				fmt.Printf("resume warehouse %s success", warehouseName)
+				fmt.Printf("Resume warehouse %s succeed.\n", warehouseName)
 				return nil
 			},
 			retry.Delay(1*time.Second),
-			retry.Attempts(20),
+			retry.Attempts(uint(timeout/time.Second)),
 		)
 		if err != nil {
 			return errors.Wrap(err, "wait for resume warehouse failed")
 		}
 	}
-	fmt.Printf("resume warehouse %s done, please use `bendsql warehouse status WAREHOUSENAME` to check", warehouseName)
+	fmt.Printf("Resume warehouse %s done, please check with `bendsql cloud warehouse status [WAREHOUSE]`\n", warehouseName)
 	return nil
 }

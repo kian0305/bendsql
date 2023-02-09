@@ -27,13 +27,13 @@ import (
 
 func NewCmdWarehouseSuspend(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "suspend [warehouseName]",
+		Use:   "suspend",
 		Short: "Suspend a warehouse",
 		Long:  "Suspend a warehouse",
 		Args:  cobra.MaximumNArgs(1),
 		Example: heredoc.Doc(`
 			# suspend a warehouse
-			$ bendsql warehouse suspend [WAREHOUSENAME]
+			$ bendsql cloud warehouse suspend [WAREHOUSE]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			apiClient, err := api.NewClient()
@@ -47,13 +47,13 @@ func NewCmdWarehouseSuspend(f *cmdutil.Factory) *cobra.Command {
 			case 1:
 				warehouse = args[0]
 			default:
-				return errors.New("wrong params, example: bendsql warehouse suspend WAREHOUSENAME")
+				return errors.New("wrong params")
 			}
 			err = apiClient.SuspendWarehouse(warehouse)
 			if err != nil {
 				return errors.Wrapf(err, "suspend warehouse %s failed", warehouse)
 			}
-			fmt.Printf("suspend warehouse %s success you can use `bendsql warehouse status WAREHOUSENAME` to check", warehouse)
+			fmt.Printf("Suspend warehouse %s succeed, you can check with `bendsql cloud warehouse status WAREHOUSE`\n", warehouse)
 			return nil
 		},
 	}

@@ -33,7 +33,7 @@ func NewCmdWarehouseUse(f *cmdutil.Factory) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Example: heredoc.Doc(`
 			# "select working warehouse",
-			$ bendsql warehouse use WORKINGWAREHOUSE
+			$ bendsql cloud warehouse use [WAREHOUSE]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			apiClient, err := api.NewClient()

@@ -28,13 +28,13 @@ import (
 func NewCmdWarehouseStatus(f *cmdutil.Factory) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "status warehouseName",
+		Use:   "status",
 		Short: "show warehouse status",
 		Long:  "show warehouse status",
 		Args:  cobra.MaximumNArgs(1),
 		Example: heredoc.Doc(`
 			# show warehouse status
-			$ bendsql warehouse status WAREHOUSENAME
+			$ bendsql cloud warehouse status [WAREHOUSE]
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			apiClient, err := api.NewClient()
@@ -48,14 +48,14 @@ func NewCmdWarehouseStatus(f *cmdutil.Factory) *cobra.Command {
 			case 1:
 				warehouse = args[0]
 			default:
-				return errors.Wrap(err, "wrong params, example: bendsql warehouse status WAREHOUSENAME")
+				return errors.Wrap(err, "wrong params")
 			}
 
 			warehouseStatus, err := apiClient.ViewWarehouse(warehouse)
 			if err != nil {
 				return errors.Wrap(err, "show warehouse status failed")
 			}
-			fmt.Printf("warehouse %s status is %s, size is %s, readyInstance is %d, totalInstance is %d\n",
+			fmt.Printf("Warehouse %s status is %s, size is %s, readyInstance is %d, totalInstance is %d\n",
 				warehouseStatus.Name, warehouseStatus.State,
 				warehouseStatus.Size, warehouseStatus.ReadyInstances,
 				warehouseStatus.TotalInstances)

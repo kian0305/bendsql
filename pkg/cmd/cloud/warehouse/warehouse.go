@@ -30,12 +30,12 @@ import (
 // NewWarehouseCmd represents the warehouse command
 func NewWarehouseCmd(f *cmdutil.Factory) *cobra.Command {
 	warehouseCmd := &cobra.Command{
-		Use:   "warehouse cmd",
+		Use:   "warehouse",
 		Short: "Operate warehouse",
 		Long: `Operate warehouse. For example:
-            bendsql warehouse ls
-            bendsql warehouse status YOUR_WAREHOUSE
-            bendsql warehouse suspend YOUR_WAREHOUSE
+            bendsql cloud warehouse ls
+            bendsql cloud warehouse status [WAREHOUSE]
+            bendsql cloud warehouse suspend [WAREHOUSE]
 `,
 		Annotations: map[string]string{
 			"IsCore": "true",

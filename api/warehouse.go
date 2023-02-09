@@ -70,10 +70,11 @@ type CreateWarehouseRequestBody struct {
 	Size      string `json:"size,omitempty"`
 }
 
-func (c *Client) CreateWarehouse(warehouseName, size string) error {
+func (c *Client) CreateWarehouse(warehouseName, size, tag string) error {
 	req := &CreateWarehouseRequestBody{
-		Name: warehouseName,
-		Size: size,
+		Name:     warehouseName,
+		Size:     size,
+		ImageTag: tag,
 	}
 	path := fmt.Sprintf("/api/v1/orgs/%s/tenant/warehouses", c.cfg.Org)
 	err := c.DoRequest("POST", path, nil, req, nil)
@@ -92,8 +93,8 @@ func (c *Client) DeleteWarehouse(warehouseName string) error {
 	return nil
 }
 
-func (c *Client) CreateWarehouseAndWaitRunning(warehouseName, size string) error {
-	err := c.CreateWarehouse(warehouseName, size)
+func (c *Client) CreateWarehouseAndWaitRunning(warehouseName, size, tag string) error {
+	err := c.CreateWarehouse(warehouseName, size, tag)
 	if err != nil {
 		return err
 	}

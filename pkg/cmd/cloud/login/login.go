@@ -65,10 +65,10 @@ func NewCmdLogin(f *cmdutil.Factory) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&opts.Org, "org", "", "org")
-	cmd.Flags().StringVar(&opts.Email, "email", "", "email")
-	cmd.Flags().StringVar(&opts.Password, "password", "", "password")
-	cmd.Flags().StringVar(&opts.Endpoint, "endpoint", "", "endpoint")
+	cmd.Flags().StringVarP(&opts.Org, "org", "", "", "org")
+	cmd.Flags().StringVarP(&opts.Email, "email", "", "", "email")
+	cmd.Flags().StringVarP(&opts.Password, "password", "", "", "password")
+	cmd.Flags().StringVarP(&opts.Endpoint, "endpoint", "", "", "endpoint")
 	return cmd
 }
 

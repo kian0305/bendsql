@@ -41,7 +41,7 @@ func NewCmdConfigure(f *cmdutil.Factory) *cobra.Command {
 		Example: heredoc.Doc(`
 			# Set your default org and using warehouse with flag
 			# NOTE: Using flag is faster than interactive shell
-			$ bendsql cloud configure --org ORG --warehouse WAREHOUSENAME
+			$ bendsql cloud configure --org ORG --warehouse [WAREHOUSE]
 
 			# Set with interactive shell
 			$ bendsql cloud configure
@@ -92,8 +92,8 @@ func NewCmdConfigure(f *cmdutil.Factory) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVar(&opts.Org, "org", "", "org")
-	cmd.Flags().StringVar(&opts.Warehouse, "warehouse", "", "warehouse")
+	cmd.Flags().StringVarP(&opts.Org, "org", "", "", "org")
+	cmd.Flags().StringVarP(&opts.Warehouse, "warehouse", "", "", "warehouse")
 
 	return cmd
 }
